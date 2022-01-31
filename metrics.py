@@ -138,10 +138,10 @@ def all_counts(df, queries):
 
 """
 ==================================================================================
-Variable Made
+User Involvement
 ==================================================================================
 
-Make new variables from the existing counts, made variables are consist of:
+Make new variables from the existing counts, user Involvement made variables are consist of:
 
 - Interaction
   Sum of reply count and retweet count
@@ -151,7 +151,7 @@ Make new variables from the existing counts, made variables are consist of:
 
 """
 
-def made_variables(metrics_df):
+def user_involvement(metrics_df):
     metrics_df["interactions"] = metrics_df[config.REPLY_COL] + metrics_df[config.RETWEET_COL]
     metrics_df = metrics_df.rename(columns={"max_follower_count": "potential_users_reached"})
     return metrics_df

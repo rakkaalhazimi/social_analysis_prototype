@@ -1,4 +1,6 @@
 import streamlit as st
+
+import config
 from loader import load_data, load_trends_data, load_metric_data, load_tweet_style
 from views import (
     show_logo, show_search_bar, show_tweet_trends, show_metric_charts, show_tweet_details
@@ -24,7 +26,7 @@ with right:
             trends_df = load_trends_data(queries, df)
             
             # Show line chart
-            st.subheader("Tweets Timeline")
+            st.subheader("Tweets Trends")
             show_tweet_trends(queries, trends_df)
             st.subheader("")
 
@@ -32,10 +34,10 @@ with right:
             metric_df = load_metric_data(queries, df)
             
             # Show metrics chart
-            st.subheader("Tweet Metrics")
-            show_metric_charts(metric_df)
+            st.subheader("Count Analysis")
+            show_metric_charts(metric_df[config.COUNT_COLS])
             st.subheader("")
             
             # Show tweet details
             st.subheader("Tweet Details")
-            # show_tweet_details(df, queries, max_tweets=30)
+            show_tweet_details(df, queries, max_tweets=30)

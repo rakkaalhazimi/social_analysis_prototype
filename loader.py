@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 
 import config
-from metrics import tweet_trends, query_metric, all_counts, made_variables
+from metrics import tweet_trends, query_metric, all_counts, user_involvement
 
 
 @st.cache
@@ -24,12 +24,11 @@ def load_metric_data(queries, df):
     # Concat both metrics and counts
     metric_count_df = pd.concat([metrics_df, counts_df], axis=1)
 
-    # Create made DataFrame
-    made_df = made_variables(metric_count_df)
+    # Create user involvement DataFrame
+    user_df = user_involvement(metric_count_df)
 
-    # Return count and made DataFrame
-    config.EXCLUDE_COLS += list(metrics_df.columns)
-    return  made_df.drop(config.EXCLUDE_COLS, axis=1)
+    # Return last concatenated DataFrame
+    return  user_df
 
 
 def load_charts_data():
