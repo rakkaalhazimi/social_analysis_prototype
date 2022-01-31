@@ -1,5 +1,5 @@
 import re
-from math import pi
+from math import pi, ceil
 
 import streamlit as st
 
@@ -9,13 +9,13 @@ from bokeh.models import (
     Div, DatetimeTickFormatter, Panel, Tabs
 )
 from bokeh.transform import cumsum
+from bokeh.palettes import Bokeh5
 
 import config
-from loader import load_tweet_template
+from loader import load_transformed_charts_data, load_tweet_template
 from metrics import (
     replace_wspace
 )
-from plots import set_hbar_chart, set_donut_charts, set_text_chart
 from utils import arange_charts, color_generator, format_title
 
 
@@ -49,7 +49,7 @@ Includes tweet trends
 def show_tweet_trends(queries, trends):
     tooltips = [("Date", "@date{%F}")] + [(f"{query}", f"@{replace_wspace(query)}") for query in queries]
 
-    p = figure(width=900, height=500, x_axis_type="datetime", tooltips=tooltips, title="Tweets Trend")
+    p = figure(width=900, height=420, x_axis_type="datetime", tooltips=tooltips, title="Tweets Trend")
 
     for query, color in zip(queries, color_generator()):
         p.line(x="date", y=replace_wspace(query), legend_label=query, color=color, source=trends)
@@ -72,6 +72,48 @@ Content: Metric Charts
 Includes tweet metric charts
 
 """
+def set_bubble_charts(value_col, tooltips, source):
+    data = source[value_col]
+
+    width = 900
+    height = 420
+    
+    cols = 3
+    rows = ceil(len(data) / cols)
+    
+    y_pad = (width // height) * 2 / 10
+    x_range = (-1, cols)
+    y_range = (-(y_pad * rows) + 0.2, 0 + 0.2)
+
+    tooltips = [("query", f"@{config.CATEGORY_COL}"), ("counts", f"@{value_col}")]
+
+    p = figure(width=width, height=height, x_range=x_range, y_range=y_range, tools=[], tooltips=tooltips)
+
+    x, y = [], []
+    row, col = 0, 0
+    sizes = [value / sum(data) * (width // 2) for value in data]
+
+    for i in range(len(data)):
+        x.append(col)
+        y.append(row)
+
+        if col == cols - 1:
+            col = 0
+            row -= y_pad
+        else:
+            col += 1
+
+    source["x"], source["y"], source["sizes"] = x, y, sizes
+
+    p.circle(x="x", y="y", legend_field=config.CATEGORY_COL, size="sizes", color=config.COLOR_COL, source=source)
+
+    p.axis.axis_label=None
+    p.axis.visible=False
+    p.grid.grid_line_color = None
+
+    st.bokeh_chart(p)
+
+
 def set_donut_charts(value_col, tooltips, source):
     chart = figure(width=300, height=300, title=format_title(value_col), tools=[], tooltips=tooltips)
 
@@ -84,8 +126,8 @@ def set_donut_charts(value_col, tooltips, source):
                 inner_radius=0.4, outer_radius=0.5,
                 start_angle=cumsum(angle_col, include_zero=True), 
                 end_angle=cumsum(angle_col),
-                legend_field="category",
-                color="color",
+                legend_field=config.CATEGORY_COL,
+                color=config.COLOR_COL,
                 source=source)
     
     chart.axis.axis_label=None
@@ -116,27 +158,25 @@ def set_text_chart(value_col, source):
     return chart
 
 
-def show_metric_charts(metric_df):
+def show_tweet_count_chart(metric_df):
+    # Transform data
+    metric_df = load_transformed_charts_data(metric_df)
+
+
+
+def show_count_analysis_charts(metric_df):
     # Initiate parameter
     charts = []
-    len_data = metric_df.shape[0]
-    color_gen = color_generator()
-    color_col = "color"
-    category_col = "category"
     metric_names = metric_df.columns
 
     # Transform data
-    metric_df[category_col] = metric_df.index
-    metric_df[color_col] = [next(color_gen) for i in range(len_data)]
+    metric_df = load_transformed_charts_data(metric_df)
 
     for index, value_col in enumerate(metric_names):
         tooltips = [("query", "@category"), (f"{value_col}", "@" + value_col + "{0,0}")]
 
         if len(metric_df) >= 2:
-            if index < 3:
-                chart = set_donut_charts(value_col, tooltips, metric_df)
-            else:
-                chart = set_hbar_chart(value_col, tooltips, metric_df)
+            chart = set_donut_charts(value_col, tooltips, metric_df)
 
         else:
             chart = set_text_chart(value_col, metric_df)

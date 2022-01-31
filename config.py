@@ -5,7 +5,9 @@ TWEET_STYLE_PATH = "src/template/tweet_style.html"
 
 # Twitter Parameters
 METRIC_COLS = ["retweet_count", "reply_count", "like_count", "quote_count"]
-COUNT_COLS = ["tweets_count", "viral_count", "influencer_count", "sensitive_count"]
+TWEET_COUNT_COLS = ["tweets_count"]
+COUNT_ANALYSIS_COLS = ["viral_count", "influencer_count", "sensitive_count"]
+USER_INVOLVEMENT_COLS = ["interactions", "potential_users_reached"]
 DATE_COL = "created_at"
 TEXT_COL = "full_text"
 USER_ID_COL = "user.id"

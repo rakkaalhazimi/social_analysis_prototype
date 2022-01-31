@@ -3,6 +3,7 @@ import streamlit as st
 
 import config
 from metrics import tweet_trends, query_metric, all_counts, user_involvement
+from utils import color_generator
 
 
 @st.cache
@@ -31,8 +32,15 @@ def load_metric_data(queries, df):
     return  user_df
 
 
-def load_charts_data():
-    return
+def load_transformed_charts_data(df):
+    len_data = df.shape[0]
+    color_gen = color_generator()
+
+    # Transform data
+    df[config.CATEGORY_COL] = df.index
+    df[config.COLOR_COL] = [next(color_gen) for i in range(len_data)]
+
+    return df
 
 
 def load_tweet_template():

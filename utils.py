@@ -1,12 +1,11 @@
 import re
 from itertools import cycle
 
-import streamlit as st
 from bokeh.layouts import row
-from bokeh.palettes import Category10_10, Spectral
+from bokeh.palettes import Bokeh8
 
 
-COLORS = Spectral[11]
+COLORS = Bokeh8
 
 def color_generator():
     for color in cycle(COLORS):
