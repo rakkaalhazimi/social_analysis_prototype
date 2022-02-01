@@ -115,7 +115,12 @@ def set_bubble_charts(value_col, source):
 
 
 def show_tweet_count_chart(metric_df):
-    chart = set_bubble_charts(config.TWEET_COUNT_COL, metric_df)
+    metric_names = metric_df.columns
+    if len(metric_names) >= 2:
+        chart = set_bubble_charts(config.TWEET_COUNT_COL, metric_df)
+    else:
+        chart = set_text_chart(300, 300, config.TWEET_COUNT_COL, metric_df)
+    
     return chart
 
 
@@ -142,6 +147,12 @@ def set_donut_charts(value_col, tooltips, source):
                 line_color="white",
                 source=source)
 
+    chart.grid.grid_line_color = None
+    chart.axis.axis_label = None
+    chart.axis.visible = False
+    chart.toolbar.logo = None
+    chart.toolbar_location = None
+
     return chart
 
 
@@ -150,6 +161,12 @@ def set_text_chart(width, height, value_col, source):
     chart = figure(width=width, height=height, title=format_title(value_col), tools=[])
     chart.text(x=0, y=1, text=["{:,}".format(digit)], 
                 text_baseline="middle", text_align="center", text_font_size="20px", text_font_style="bold")
+
+    chart.grid.grid_line_color = None
+    chart.axis.axis_label = None
+    chart.axis.visible = False
+    chart.toolbar.logo = None
+    chart.toolbar_location = None
 
     return chart
 
@@ -171,15 +188,12 @@ def show_count_analysis_charts(metric_df):
             chart = set_text_chart(300, 300, value_col, metric_df)
             
         # Chart Properties
-        chart.toolbar.logo = None
-        chart.toolbar_location = None
+        
         chart.legend.location = "bottom_left"
         chart.legend.orientation = "horizontal"
         chart.hover.mode = "mouse"
-        chart.grid.grid_line_color = None
         
-        chart.axis.axis_label = None
-        chart.axis.visible = False
+        
         # chart.background_fill_color = "#DAF7A6"
 
         charts.append(chart)
@@ -217,13 +231,19 @@ def show_user_involvement_charts(metric_df):
 
         if len(metric_df) >= 2:
             chart = set_vbar_chart(value_col, tooltips, metric_df)
+            charts.append(chart)
+            charts.append(Div(height=100))
 
         else:
             chart = set_text_chart(300, 300, value_col, metric_df)
+            charts.append(chart)
 
-        charts.append(chart)
+    if len(metric_df) >= 2:
+        layout = column(*charts)
+    else:
+        layout = arange_charts(charts, cols=3)
+        layout = column(*layout)
 
-    layout = column(*charts)
     return layout
 
 
