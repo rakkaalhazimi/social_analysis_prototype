@@ -3,7 +3,7 @@ import streamlit as st
 import config
 from loader import load_data, load_trends_data, load_metric_data, load_tweet_style
 from views import (
-    set_bubble_charts, show_logo, show_search_bar, show_tweet_trends, show_count_analysis_charts, show_tweet_details
+    set_bubble_charts, show_logo, show_search_bar, show_tweet_trends, show_metric_charts, show_tweet_details
 )
 
 # Streamlit settings
@@ -35,17 +35,17 @@ with right:
 
             # Show tweet count chart
             st.subheader("Tweets Count")
-            # set_bubble_charts(0, 0, 0)
+            show_metric_charts(metric_df[[config.TWEET_COUNT_COL]], mode="tweet_count")
             st.subheader("")
             
             # Show count analysis chart
             st.subheader("Count Analysis")
-            show_count_analysis_charts(metric_df[config.COUNT_ANALYSIS_COLS])
+            show_metric_charts(metric_df[config.COUNT_ANALYSIS_COLS], mode="count_analysis")
             st.subheader("")
 
             # Show user involvement chart
             st.subheader("User Involvement")
-            show_count_analysis_charts(metric_df[config.USER_INVOLVEMENT_COLS])
+            show_metric_charts(metric_df[config.USER_INVOLVEMENT_COLS], mode="user_involvement")
             st.subheader("")
             
             # Show tweet details

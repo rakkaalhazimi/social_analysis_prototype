@@ -47,7 +47,7 @@ Includes tweet trends
 
 # Timeline Chart
 def show_tweet_trends(queries, trends):
-    tooltips = [("Date", "@date{%F}")] + [(f"{query}", f"@{replace_wspace(query)}") for query in queries]
+    tooltips = [("Date", "@date{%F}")] + [(f"{query}", f"@{replace_wspace(query)}" + "{0,0}") for query in queries]
 
     p = figure(width=900, height=420, x_axis_type="datetime", tooltips=tooltips, title="Tweets Trend")
 
@@ -66,28 +66,29 @@ def show_tweet_trends(queries, trends):
 
 """
 ==================================================================================
-Content: Metric Charts
+Content: Tweet Count Charts
 ==================================================================================
 
-Includes tweet metric charts
+Includes tweet count charts
 
 """
-def set_bubble_charts(value_col, tooltips, source):
+def set_bubble_charts(value_col, source):
+
+    # Transform data
+    source = load_transformed_charts_data(source)
+    
     data = source[value_col]
 
     width = 900
     height = 420
-    
     cols = 3
     rows = ceil(len(data) / cols)
-    
     y_pad = (width // height) * 2 / 10
     x_range = (-1, cols)
     y_range = (-(y_pad * rows) + 0.2, 0 + 0.2)
-
     tooltips = [("query", f"@{config.CATEGORY_COL}"), ("counts", f"@{value_col}")]
 
-    p = figure(width=width, height=height, x_range=x_range, y_range=y_range, tools=[], tooltips=tooltips)
+    chart = figure(width=width, height=height, x_range=x_range, y_range=y_range, tools=[], tooltips=tooltips)
 
     x, y = [], []
     row, col = 0, 0
@@ -105,18 +106,28 @@ def set_bubble_charts(value_col, tooltips, source):
 
     source["x"], source["y"], source["sizes"] = x, y, sizes
 
-    p.circle(x="x", y="y", legend_field=config.CATEGORY_COL, size="sizes", color=config.COLOR_COL, source=source)
+    chart.circle(x="x", y="y", legend_field=config.CATEGORY_COL, size="sizes", color=config.COLOR_COL, source=source)
 
-    p.axis.axis_label=None
-    p.axis.visible=False
-    p.grid.grid_line_color = None
+    chart.axis.axis_label=None
+    chart.axis.visible=False
+    chart.grid.grid_line_color = None
+    return chart
 
-    st.bokeh_chart(p)
+
+def show_tweet_count_chart(metric_df):
+    chart = set_bubble_charts(config.TWEET_COUNT_COL, metric_df)
+    return chart
 
 
+"""
+==================================================================================
+Content: Count Analysis Charts
+==================================================================================
+
+Includes count analysis charts
+
+"""
 def set_donut_charts(value_col, tooltips, source):
-    chart = figure(width=300, height=300, title=format_title(value_col), tools=[], tooltips=tooltips)
-
     angle_col = f"{value_col}_angle"
     source[angle_col] = source[value_col] / source[value_col].sum() * 2 * pi
 
@@ -129,72 +140,114 @@ def set_donut_charts(value_col, tooltips, source):
                 legend_field=config.CATEGORY_COL,
                 color=config.COLOR_COL,
                 source=source)
-    
-    chart.axis.axis_label=None
-    chart.axis.visible=False
 
     return chart
 
 
-def set_hbar_chart(value_col, tooltips, source):
-    chart = figure(
-        width=600, height=300, title=format_title(value_col), 
-        y_range=source[config.CATEGORY_COL], tools=[], tooltips=tooltips)
-    chart.hbar(y=config.CATEGORY_COL, left=0, right=value_col, height=0.2, source=source)
-    return chart
-
-
-def set_text_chart(value_col, source):
+def set_text_chart(width, height, value_col, source):
     digit = int(source[value_col])
-    chart = figure(width=300, height=300, title=format_title(value_col), tools=[])
+    chart = figure(width=width, height=height, title=format_title(value_col), tools=[])
     chart.text(x=0, y=1, text=["{:,}".format(digit)], 
                 text_baseline="middle", text_align="center", text_font_size="20px", text_font_style="bold")
 
-    chart.toolbar.tools = []
-    chart.toolbar_location = None
-    chart.axis.axis_label=None
-    chart.axis.visible=False
-    
     return chart
 
 
-def show_tweet_count_chart(metric_df):
-    # Transform data
-    metric_df = load_transformed_charts_data(metric_df)
-
-
-
 def show_count_analysis_charts(metric_df):
-    # Initiate parameter
     charts = []
     metric_names = metric_df.columns
 
     # Transform data
     metric_df = load_transformed_charts_data(metric_df)
 
-    for index, value_col in enumerate(metric_names):
+    for _, value_col in enumerate(metric_names):
         tooltips = [("query", "@category"), (f"{value_col}", "@" + value_col + "{0,0}")]
 
         if len(metric_df) >= 2:
             chart = set_donut_charts(value_col, tooltips, metric_df)
 
         else:
-            chart = set_text_chart(value_col, metric_df)
+            chart = set_text_chart(300, 300, value_col, metric_df)
             
-        # All Chart Properties
+        # Chart Properties
         chart.toolbar.logo = None
+        chart.toolbar_location = None
         chart.legend.location = "bottom_left"
         chart.legend.orientation = "horizontal"
         chart.hover.mode = "mouse"
-        
         chart.grid.grid_line_color = None
+        
+        chart.axis.axis_label = None
+        chart.axis.visible = False
         # chart.background_fill_color = "#DAF7A6"
 
         charts.append(chart)
 
     layouts = arange_charts(charts, cols=3)
     grid_layout = column(*layouts)
-    st.bokeh_chart(grid_layout)
+    return grid_layout
+
+
+"""
+==================================================================================
+Content: User Involvement Charts
+==================================================================================
+
+Includes user involvement charts
+
+"""
+def set_vbar_chart(value_col, tooltips, source):
+    chart = figure(
+        width=600, height=300, title=format_title(value_col), 
+        x_range=source[config.CATEGORY_COL], tools=[], tooltips=tooltips)
+    chart.vbar(x=config.CATEGORY_COL, bottom=0, top=value_col, width=0.2, color=config.COLOR_COL, source=source)
+    return chart
+
+
+def show_user_involvement_charts(metric_df):
+    charts = []
+    metric_names = metric_df.columns
+
+    # Transform data
+    metric_df = load_transformed_charts_data(metric_df)
+
+    for _, value_col in enumerate(metric_names):
+        tooltips = [("query", "@category"), (f"{value_col}", "@" + value_col + "{0,0}")]
+
+        if len(metric_df) >= 2:
+            chart = set_vbar_chart(value_col, tooltips, metric_df)
+
+        else:
+            chart = set_text_chart(300, 300, value_col, metric_df)
+
+        charts.append(chart)
+
+    layout = column(*charts)
+    return layout
+
+
+"""
+==================================================================================
+Wrap All Metrics
+==================================================================================
+
+Controller to show metric charts
+
+"""
+
+def show_metric_charts(metric_df, mode):
+    # Initiate parameter
+    mode_charts = {
+        "tweet_count": show_tweet_count_chart,
+        "count_analysis": show_count_analysis_charts,
+        "user_involvement": show_user_involvement_charts
+    }
+
+    
+
+    # Show chart
+    chart = mode_charts[mode](metric_df)
+    st.bokeh_chart(chart)
 
 
 """
