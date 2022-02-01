@@ -49,7 +49,7 @@ Includes tweet trends
 def show_tweet_trends(queries, trends):
     tooltips = [("Date", "@date{%F}")] + [(f"{query}", f"@{replace_wspace(query)}" + "{0,0}") for query in queries]
 
-    p = figure(width=900, height=420, x_axis_type="datetime", tooltips=tooltips, title="Tweets Trend")
+    p = figure(width=900, height=420, x_axis_type="datetime", tools=[], tooltips=tooltips, title="Tweets Trend")
 
     for query, color in zip(queries, color_generator()):
         p.line(x="date", y=replace_wspace(query), legend_label=query, color=color, source=trends)
@@ -302,9 +302,10 @@ def show_tweet_details(df, queries, max_tweets):
                 name=row[config.USERNAME_COL],
                 date=row[config.DATE_COL],
                 content=row[config.TEXT_COL],
+                sentiment=row[config.SENTIMENT_COL],
                 reply=int( row[config.REPLY_COL] ),
                 retweet=int( row[config.RETWEET_COL] ),
-                like=int( row[config.LIKE_COL] )
+                like=int( row[config.LIKE_COL] ),
             )
 
             tweet_card = Div(
