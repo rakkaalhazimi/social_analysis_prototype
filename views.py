@@ -290,7 +290,7 @@ def show_tweet_details(df, queries, max_tweets):
         filtered_df = df[filter]
 
         # Sort data
-        filtered_df = df.sort_values(by=[config.REPLY_COL], ascending=False)
+        filtered_df = filtered_df.sort_values(by=[config.REPLY_COL], ascending=False)
         filtered_df[config.DATE_COL] = filtered_df.index.strftime("%d %B %Y")
         filtered_df = filtered_df.reset_index(drop=True).fillna(0)
 
