@@ -5,7 +5,7 @@ TWEET_STYLE_PATH = "src/template/tweet_style.html"
 
 # Twitter Parameters
 METRIC_COLS = ["retweet_count", "reply_count", "like_count", "quote_count"]
-COUNT_ANALYSIS_COLS = ["viral_count", "influencer_count", "sensitive_count"]
+COUNT_ANALYSIS_COLS = ["viral_count", "influencer_count", "sensitive_count", "positive_sentiment_count", "negative_sentiment_count"]
 USER_INVOLVEMENT_COLS = ["interactions", "potential_users_reached"]
 TWEET_COUNT_COL = "tweets_count"
 DATE_COL = "created_at"
@@ -18,6 +18,7 @@ LIKE_COL = "like_count"
 RETWEET_COL = "retweet_count"
 QUOTE_COL = "quote_count"
 SENSITIVE_COL = "possibly_sensitive"
+SENTIMENT_COL = "sentiment"
 
 
 # Bokeh Plot Additional Column

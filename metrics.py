@@ -96,13 +96,17 @@ def count_followers(df):
     unique_user = df[[config.USER_ID_COL, config.USER_FOLLOWERS_COL]].drop_duplicates(subset=[config.USER_ID_COL])
     return unique_user[config.USER_FOLLOWERS_COL].sum()
 
-def count_max_followers(df):
-    unique_user = df[[config.USER_ID_COL, config.USER_FOLLOWERS_COL]].drop_duplicates(subset=[config.USER_ID_COL])
-    return unique_user[config.USER_FOLLOWERS_COL].max()
-
 def count_influencer(df):
     unique_user = df[[config.USER_ID_COL, config.USER_FOLLOWERS_COL]].drop_duplicates(subset=[config.USER_ID_COL])
     return (unique_user[config.USER_FOLLOWERS_COL] > 1000).sum()
+
+def count_pos_sentiment(df):
+    return (df[config.SENTIMENT_COL] == "positive").sum()
+
+def count_neg_sentiment(df):
+    return (df[config.SENTIMENT_COL] == "negative").sum()
+
+
 
 
 COUNT_ITEMS = {
@@ -111,7 +115,8 @@ COUNT_ITEMS = {
     "followers_count": count_followers,
     "influencer_count": count_influencer,
     "sensitive_count": count_sensitive,
-    "max_follower_count": count_max_followers,
+    "positive_sentiment_count": count_pos_sentiment,
+    "negative_sentiment_count": count_neg_sentiment,
 }
 
 
