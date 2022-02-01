@@ -27,8 +27,8 @@ Header
 Includes search bar and logo
 
 """
-def show_logo():
-    st.subheader("Bangalore")
+def show_logo(title):
+    st.subheader(title)
 
 def show_search_bar():
     options = st.text_input(label="Enter keywords", value="anies", placeholder="Ex: anies, ganjar, prabowo")

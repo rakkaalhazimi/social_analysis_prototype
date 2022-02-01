@@ -15,9 +15,9 @@ df = load_data()
 load_tweet_style()
 
 # Maintain the main display
-left, right = st.columns([2, 10])
+left, right = st.columns([3, 9])
 
-with left: show_logo()
+with left: show_logo("Harian Kompas")
 with right:
         queries = show_search_bar()
         queries = remove_duplicates(queries)
