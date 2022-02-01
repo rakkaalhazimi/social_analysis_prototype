@@ -116,7 +116,7 @@ def set_bubble_charts(value_col, source):
 
 def show_tweet_count_chart(metric_df):
     metric_names = metric_df.columns
-    if len(metric_names) >= 2:
+    if len(metric_df) >= 2:
         chart = set_bubble_charts(config.TWEET_COUNT_COL, metric_df)
     else:
         chart = set_text_chart(300, 300, config.TWEET_COUNT_COL, metric_df)
