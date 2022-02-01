@@ -284,8 +284,13 @@ def show_tweet_details(df, queries, max_tweets):
 
     for query in queries:
         tweet_list = []
+
+        # Filter data
         filter = df[config.TEXT_COL].str.contains(query, flags=re.IGNORECASE)
         filtered_df = df[filter]
+
+        # Sort data
+        filtered_df = df.sort_values(by=[config.REPLY_COL], ascending=False)
         filtered_df[config.DATE_COL] = filtered_df.index.strftime("%d %B %Y")
         filtered_df = filtered_df.reset_index(drop=True).fillna(0)
 
