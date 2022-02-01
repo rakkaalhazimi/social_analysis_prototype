@@ -16,6 +16,7 @@ USERNAME_COL = "user.screen_name"
 REPLY_COL = "reply_count"
 LIKE_COL = "like_count"
 RETWEET_COL = "retweet_count"
+QUOTE_COL = "quote_count"
 SENSITIVE_COL = "possibly_sensitive"
 
 

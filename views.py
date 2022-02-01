@@ -106,7 +106,7 @@ def set_bubble_charts(value_col, source):
 
     source["x"], source["y"], source["sizes"] = x, y, sizes
 
-    chart.circle(x="x", y="y", legend_field=config.CATEGORY_COL, size="sizes", color=config.COLOR_COL, source=source)
+    chart.hex(x="x", y="y", legend_field=config.CATEGORY_COL, size="sizes", color=config.COLOR_COL, source=source)
 
     chart.axis.axis_label=None
     chart.axis.visible=False
@@ -134,11 +134,12 @@ def set_donut_charts(value_col, tooltips, source):
     chart = figure(width=300, height=300, title=format_title(value_col), tools=[], tooltips=tooltips)
     chart.annular_wedge(
                 x=0, y=1, 
-                inner_radius=0.4, outer_radius=0.5,
+                inner_radius=0.2, outer_radius=0.5,
                 start_angle=cumsum(angle_col, include_zero=True), 
                 end_angle=cumsum(angle_col),
                 legend_field=config.CATEGORY_COL,
-                color=config.COLOR_COL,
+                fill_color=config.COLOR_COL,
+                line_color="white",
                 source=source)
 
     return chart
@@ -198,7 +199,7 @@ Includes user involvement charts
 """
 def set_vbar_chart(value_col, tooltips, source):
     chart = figure(
-        width=600, height=300, title=format_title(value_col), 
+        width=900, height=300, title=format_title(value_col), 
         x_range=source[config.CATEGORY_COL], tools=[], tooltips=tooltips)
     chart.vbar(x=config.CATEGORY_COL, bottom=0, top=value_col, width=0.2, color=config.COLOR_COL, source=source)
     return chart
@@ -283,7 +284,6 @@ def show_tweet_details(df, queries, max_tweets):
 
             tweet_card = Div(
                 text=template, 
-                # style={"border": "2px solid red"}, 
                 width=900, sizing_mode="scale_width")
             
             tweet_list.append(tweet_card)

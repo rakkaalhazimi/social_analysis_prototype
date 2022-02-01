@@ -2,8 +2,9 @@ import streamlit as st
 
 import config
 from loader import load_data, load_trends_data, load_metric_data, load_tweet_style
+from utils import remove_duplicates
 from views import (
-    set_bubble_charts, show_logo, show_search_bar, show_tweet_trends, show_metric_charts, show_tweet_details
+    show_logo, show_search_bar, show_tweet_trends, show_metric_charts, show_tweet_details
 )
 
 # Streamlit settings
@@ -19,6 +20,7 @@ left, right = st.columns([2, 10])
 with left: show_logo()
 with right:
         queries = show_search_bar()
+        queries = remove_duplicates(queries)
 
         if "" not in queries:
 
