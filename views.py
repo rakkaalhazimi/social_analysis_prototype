@@ -1,22 +1,21 @@
 import re
 from math import pi, ceil
 
+from PIL import Image
+import numpy as np
 import streamlit as st
-
+import matplotlib.pyplot as plt
 from bokeh.plotting import figure
 from bokeh.layouts import column
+from bokeh.transform import cumsum
 from bokeh.models import (
     Div, DatetimeTickFormatter, Panel, Tabs
-)
-from bokeh.transform import cumsum
-from bokeh.palettes import Bokeh5
+    )
+from wordcloud import WordCloud
 
 import config
-from loader import load_transformed_charts_data, load_tweet_template
-from metrics import (
-    replace_wspace
-)
-from utils import arange_charts, color_generator, format_title
+from loader import load_stopwords, load_transformed_charts_data, load_tweet_template
+from utils import arange_charts, color_generator, format_title, replace_wspace
 
 
 """
@@ -264,11 +263,44 @@ def show_metric_charts(metric_df, mode):
         "user_involvement": show_user_involvement_charts
     }
 
-    
-
     # Show chart
     chart = mode_charts[mode](metric_df)
     st.bokeh_chart(chart)
+
+
+"""
+==================================================================================
+Content: Word Clouds
+==================================================================================
+
+Includes word cloud on every query
+
+"""
+def show_wordcloud(df, queries):
+
+    mask = np.array(Image.open("src/images/twitter.jpg"))
+    stopwords = load_stopwords() + ["yg", "nya"]
+    
+    for query in queries:
+        fig = plt.figure(figsize=(10, 10))
+
+        # Filter data
+        filters = df[config.TEXT_COL].str.contains(query, flags=re.IGNORECASE)
+        sorted_df = df[filters].sort_values(by=[config.REPLY_COL]).head(200)
+        text = sorted_df[config.TEXT_CLEAN_COL].str.cat(sep=" ")
+
+        wcloud = WordCloud(
+            background_color="white",
+            max_words=1000,
+            mask=mask,
+            stopwords=stopwords,
+        ).generate(text)
+
+        plt.imshow(wcloud, interpolation="bilinear")
+        plt.axis("off")
+        plt.title(f"{query} words", fontdict=dict(fontsize=10))
+    
+        st.pyplot(fig)
 
 
 """

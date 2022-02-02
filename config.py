@@ -10,6 +10,7 @@ USER_INVOLVEMENT_COLS = ["interactions", "potential_users_reached"]
 TWEET_COUNT_COL = "tweets_count"
 DATE_COL = "created_at"
 TEXT_COL = "full_text"
+TEXT_CLEAN_COL = "full_text_cleaned"
 USER_ID_COL = "user.id"
 USER_FOLLOWERS_COL = "user.followers_count"
 USERNAME_COL = "user.screen_name"

@@ -4,8 +4,9 @@ import config
 from loader import load_data, load_trends_data, load_metric_data, load_tweet_style
 from utils import remove_duplicates
 from views import (
-    show_logo, show_search_bar, show_tweet_trends, show_metric_charts, show_tweet_details
-)
+    show_logo, show_search_bar, show_tweet_trends, 
+    show_metric_charts, show_tweet_details, show_wordcloud
+    )
 
 # Streamlit settings
 st.set_page_config(layout="wide")
@@ -48,6 +49,11 @@ with right:
             # Show user involvement chart
             st.subheader("User Involvement")
             show_metric_charts(metric_df[config.USER_INVOLVEMENT_COLS], mode="user_involvement")
+            st.subheader("")
+
+            # Show word cloud chart
+            st.subheader("Word Cloud")
+            show_wordcloud(df, queries)
             st.subheader("")
             
             # Show tweet details

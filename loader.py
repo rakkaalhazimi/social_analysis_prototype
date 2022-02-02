@@ -1,5 +1,9 @@
 import pandas as pd
 import streamlit as st
+import nltk
+from nltk.corpus import stopwords
+nltk.download("stopwords")
+
 
 import config
 from metrics import tweet_trends, query_metric, all_counts, user_involvement
@@ -50,3 +54,7 @@ def load_tweet_template():
 def load_tweet_style():
     with open(config.TWEET_STYLE_PATH, "r") as style:
         st.markdown(style.read(), unsafe_allow_html=True)
+
+@st.cache
+def load_stopwords():
+    return stopwords.words("indonesian")
