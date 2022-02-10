@@ -30,7 +30,7 @@ def show_logo(title):
     st.subheader(title)
 
 def show_search_bar():
-    options = st.text_input(label="Enter keywords", value="anies", placeholder="Ex: anies, ganjar, prabowo")
+    options = st.text_input(label="Masukkan Nama Lengkap", value="Anies Baswedan", placeholder="Ex: Anies Baswedan, Ganjar Pranowo")
     return options.split(",")
 
 
