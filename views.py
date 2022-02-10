@@ -1,20 +1,20 @@
 import re
-from math import pi, ceil
+from math import pi
 
 from PIL import Image
 import numpy as np
 import streamlit as st
 import matplotlib.pyplot as plt
 from bokeh.plotting import figure
-from bokeh.layouts import column
-from bokeh.transform import cumsum
+from bokeh.layouts import column, row
+from bokeh.transform import cumsum, dodge
 from bokeh.models import (
-    Div, DatetimeTickFormatter, Panel, Tabs, NumeralTickFormatter
+    Div, DatetimeTickFormatter, Panel, Tabs, NumeralTickFormatter, LabelSet, ColumnDataSource, Legend, LegendItem
     )
 
 
 import config
-from loader import load_stopwords, load_transformed_charts_data, load_tweet_template, load_data, load_trends_data, load_metric_data, load_tweet_style
+from loader import load_stopwords, load_transformed_charts_data, load_tweet_template, load_data, load_trends_data, load_metric_data
 from utils import arange_charts, color_generator, format_title, replace_wspace, remove_duplicates, join_queries, filter_tweets, gen_wordcloud
 
 
@@ -84,29 +84,13 @@ def show_tweet_trends():
         st.subheader("")
 
 
-def set_bubble_charts(value_col, source):
-
-    # Transform data
-    source = load_transformed_charts_data(source)
-    
-    tooltips = [("query", f"@{config.CATEGORY_COL}"), ("counts", f"@{value_col}")]
-
-    chart = figure(width=900, height=420, x_range=source[config.CATEGORY_COL], tools=[], tooltips=tooltips)
-
-    chart.circle(x=config.CATEGORY_COL, y=0, legend_field=config.CATEGORY_COL, size="sizes", color=config.COLOR_COL, source=source)
-
-    chart.axis.axis_label=None
-    chart.axis.visible=False
-    chart.grid.grid_line_color = None
-    return chart
-
-
 def show_tweet_count_chart():
     if st.session_state.get("queries") and st.session_state.get("metric_df") is not None:
         metric_df = st.session_state.get("metric_df")
 
         if len(metric_df) >= 2:
-            chart = set_bubble_charts(config.TWEET_COUNT_COL, metric_df)
+            tooltips = [("query", "@category"), ("count", "@tweets_count{0,0}")]
+            chart = set_vbar_chart(config.TWEET_COUNT_COL, tooltips, metric_df)
         else:
             chart = set_text_chart(300, 300, config.TWEET_COUNT_COL, metric_df)
         
@@ -130,21 +114,36 @@ Includes count analysis charts, user involvement charts and sentiment ratio
 def set_donut_charts(value_col, tooltips, source):
     angle_col = f"{value_col}_angle"
     source[angle_col] = source[value_col] / source[value_col].sum() * 2 * pi
+    
 
-    chart = figure(width=300, height=300, title=format_title(value_col), tools=[], tooltips=tooltips)
-    chart.annular_wedge(
-                x=0, y=1, 
-                inner_radius=0.2, outer_radius=0.5,
-                start_angle=cumsum(angle_col, include_zero=True), 
-                end_angle=cumsum(angle_col),
-                legend_field=config.CATEGORY_COL,
-                fill_color=config.COLOR_COL,
-                line_color="white",
-                source=source)
+    chart = figure(width=450, height=450, title=format_title(value_col), x_range=(-1, 1), y_range=(-1, 1), tools=[], tooltips=tooltips)
+    wedge = chart.annular_wedge(
+                    x=0, y=0, 
+                    inner_radius=0.2, outer_radius=0.5,
+                    start_angle=cumsum(angle_col, include_zero=True), 
+                    end_angle=cumsum(angle_col),
+                    fill_color=config.COLOR_COL,
+                    line_color="white",
+                    source=source)
+    
+    legend = Legend(items=[
+        LegendItem(label=cat, renderers=[wedge], index=i) for i, cat in enumerate(source[config.CATEGORY_COL])
+    ], orientation="vertical")
+
+    chart.add_layout(legend, "above")
+
+    source_copy = source.copy()
+    source_copy[value_col] = source_copy[value_col].astype("str")
+    source_copy[value_col] = source_copy[value_col].str.pad(15, side="left")
+
+    source_copy = ColumnDataSource(source_copy)
+    label = LabelSet(x=0, y=0, text=value_col, angle=cumsum(angle_col, include_zero=True), text_color="white", source=source_copy, render_mode="canvas")
+    chart.add_layout(label)
 
     chart.grid.grid_line_color = None
     chart.axis.axis_label = None
     chart.axis.visible = False
+    chart.legend.orientation = "vertical"
     chart.toolbar.logo = None
     chart.toolbar_location = None
 
@@ -194,7 +193,7 @@ def show_count_analysis_charts():
 
             charts.append(chart)
 
-        layouts = arange_charts(charts, cols=3)
+        layouts = arange_charts(charts, cols=2)
         grid_layout = column(*layouts)
         
         st.subheader("Count Analysis")
@@ -217,9 +216,12 @@ def show_sentiment_count_charts():
             ("Positif", "@{positive_sentiment_count}{%0.2f}"),
             ("Negatif", "@{negative_sentiment_count}{%0.2f}")
         ]
-        chart = figure(width=900, height=300, y_range=metric_df[config.CATEGORY_COL], tooltips=tooltips)
+        chart = figure(width=900, height=300, y_range=metric_df[config.CATEGORY_COL], tooltips=tooltips, tools=[])
         chart.hbar(y=config.CATEGORY_COL, left=0, height=0.1, right="positive_sentiment_count", color="#3BACC4", source=metric_df)
         chart.hbar(y=config.CATEGORY_COL, left="positive_sentiment_count", height=0.1, right=1, color="#C4533B", source=metric_df)
+        
+        chart.xaxis.visible = False
+        chart.grid.grid_line_color = None
 
         st.subheader("Sentiment Ratio")
         st.bokeh_chart(chart)
@@ -230,7 +232,7 @@ def show_sentiment_count_charts():
 
 def set_vbar_chart(value_col, tooltips, source):
     chart = figure(
-        width=900, height=300, title=format_title(value_col), 
+        width=900, height=450, title=format_title(value_col), 
         x_range=source[config.CATEGORY_COL], tools=[], tooltips=tooltips)
     chart.vbar(x=config.CATEGORY_COL, bottom=0, top=value_col, width=0.2, color=config.COLOR_COL, source=source)
     chart.yaxis[0].formatter = NumeralTickFormatter(format="0a")
