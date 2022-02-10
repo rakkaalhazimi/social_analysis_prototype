@@ -36,7 +36,7 @@ def show_search_bar():
     queries = join_queries(st.session_state.get("queries"))
     options = st.text_input(
         label="Masukkan Nama Lengkap", 
-        value=queries or "Anies Baswedan", 
+        value=queries or "Anies Baswedan, Ganjar Pranowo, Prabowo Subianto, Sandiaga Uno, Ridwan Kamil", 
         placeholder="Ex: Anies Baswedan, Ganjar Pranowo")
     return options.split(",")
 
