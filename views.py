@@ -18,6 +18,9 @@ from loader import load_stopwords, load_transformed_charts_data, load_tweet_temp
 from utils import arange_charts, color_generator, format_title, replace_wspace, remove_duplicates, join_queries, filter_tweets, gen_wordcloud
 
 
+# Streamlit settings
+st.set_page_config(layout="wide")
+
 # Load Data
 df = load_data()
 
@@ -117,36 +120,36 @@ def set_donut_charts(value_col, tooltips, source):
     source[angle_col] = source[value_col] / source[value_col].sum() * 2 * pi
     
 
-    chart = figure(width=450, height=450, title=format_title(value_col), x_range=(-1, 1), y_range=(-1, 1), tools=[], tooltips=tooltips)
+    chart = figure(width=450, height=450, title=format_title(value_col), x_range=(-1, 1), y_range=(-1, 1), tooltips=tooltips)
     wedge = chart.annular_wedge(
                     x=0, y=0, 
                     inner_radius=0.2, outer_radius=0.5,
                     start_angle=cumsum(angle_col, include_zero=True), 
                     end_angle=cumsum(angle_col),
+                    legend_field=config.CATEGORY_COL,
                     fill_color=config.COLOR_COL,
                     line_color="white",
                     source=source)
     
     legend = Legend(items=[
         LegendItem(label=cat, renderers=[wedge], index=i) for i, cat in enumerate(source[config.CATEGORY_COL])
-    ], orientation="vertical")
+    ], orientation="horizontal")
 
-    chart.add_layout(legend, "above")
+    # chart.add_layout(legend, "above")
 
     source_copy = source.copy()
     source_copy[value_col] = source_copy[value_col].astype("str")
     source_copy[value_col] = source_copy[value_col].str.pad(15, side="left")
 
-    source_copy = ColumnDataSource(source_copy)
-    label = LabelSet(x=0, y=0, text=value_col, angle=cumsum(angle_col, include_zero=True), text_color="white", source=source_copy, render_mode="canvas")
-    chart.add_layout(label)
+    # source_copy = ColumnDataSource(source_copy)
+    # label = LabelSet(x=0, y=0, text=value_col, angle=cumsum(angle_col, include_zero=True), text_color="white", source=source_copy, render_mode="canvas")
+    # chart.add_layout(label)
 
     chart.grid.grid_line_color = None
     chart.axis.axis_label = None
     chart.axis.visible = False
     chart.legend.orientation = "vertical"
     chart.toolbar.logo = None
-    chart.toolbar_location = None
 
     return chart
 
@@ -186,7 +189,7 @@ def show_count_analysis_charts():
                 
             # Chart Properties
             chart.legend.location = "bottom_left"
-            chart.legend.orientation = "horizontal"
+            chart.legend.orientation = "vertical"
             chart.hover.mode = "mouse"
             
             

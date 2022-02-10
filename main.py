@@ -1,16 +1,10 @@
 import streamlit as st
-
-import config
 from loader import load_tweet_style
 from views import (
     show_home, show_trend, show_public_analysis, show_tweet_details, show_wordcloud
     )
 
-# Streamlit settings
-# st.set_page_config(layout="wide")
-
 # Initial Load
-
 load_tweet_style()
 
 PAGES = {
