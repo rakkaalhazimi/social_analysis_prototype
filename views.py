@@ -60,7 +60,9 @@ def show_tweet_trends(queries, trends):
     p.legend.location = "top_left"
     p.legend.background_fill_alpha = 0.3
 
+    st.subheader("Tweets Trends")
     st.bokeh_chart(p)
+    st.subheader("")
 
 
 """
@@ -120,7 +122,9 @@ def show_tweet_count_chart(metric_df):
     else:
         chart = set_text_chart(300, 300, config.TWEET_COUNT_COL, metric_df)
     
-    return chart
+    st.subheader("Tweets Count")
+    st.bokeh_chart(chart)
+    st.subheader("")
 
 
 """
@@ -187,7 +191,6 @@ def show_count_analysis_charts(metric_df):
             chart = set_text_chart(300, 300, value_col, metric_df)
             
         # Chart Properties
-        
         chart.legend.location = "bottom_left"
         chart.legend.orientation = "horizontal"
         chart.hover.mode = "mouse"
@@ -199,7 +202,10 @@ def show_count_analysis_charts(metric_df):
 
     layouts = arange_charts(charts, cols=3)
     grid_layout = column(*layouts)
-    return grid_layout
+    
+    st.subheader("Count Analysis")
+    st.bokeh_chart(grid_layout)
+    st.subheader("")
 
 
 """
@@ -243,7 +249,10 @@ def show_user_involvement_charts(metric_df):
         layout = arange_charts(charts, cols=3)
         layout = column(*layout)
 
-    return layout
+
+    st.subheader("User Involvement")
+    st.bokeh_chart(layout)
+    st.subheader("")
 
 
 """
@@ -299,8 +308,10 @@ def show_wordcloud(df, queries):
         plt.imshow(wcloud, interpolation="bilinear")
         plt.axis("off")
         plt.title(f"{query} words", fontdict=dict(fontsize=10))
-    
+
+        st.subheader("Word Cloud")
         st.pyplot(fig)
+        st.subheader("")
 
 
 """
@@ -349,4 +360,6 @@ def show_tweet_details(df, queries, max_tweets):
         panels.append( Panel(child=column(*tweet_list), title=query) )
     
     layouts = Tabs(tabs=panels)
+    
+    st.subheader("Tweet Details")
     st.bokeh_chart(layouts)

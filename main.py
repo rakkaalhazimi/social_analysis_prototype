@@ -4,8 +4,8 @@ import config
 from loader import load_data, load_trends_data, load_metric_data, load_tweet_style
 from utils import remove_duplicates
 from views import (
-    show_logo, show_search_bar, show_tweet_trends, 
-    show_metric_charts, show_tweet_details, show_wordcloud
+    show_logo, show_search_bar, show_tweet_trends, show_count_analysis_charts, show_tweet_count_chart,
+    show_user_involvement_charts, show_tweet_details, show_wordcloud
     )
 
 # Streamlit settings
@@ -29,33 +29,23 @@ with right:
             trends_df = load_trends_data(queries, df)
             
             # Show line chart
-            st.subheader("Tweets Trends")
             show_tweet_trends(queries, trends_df)
-            st.subheader("")
-
+            
             # Load metric data
             metric_df = load_metric_data(queries, df)
 
             # Show tweet count chart
-            st.subheader("Tweets Count")
-            show_metric_charts(metric_df[[config.TWEET_COUNT_COL]], mode="tweet_count")
-            st.subheader("")
+            show_tweet_count_chart(metric_df[[config.TWEET_COUNT_COL]])
             
             # Show count analysis chart
-            st.subheader("Count Analysis")
-            show_metric_charts(metric_df[config.COUNT_ANALYSIS_COLS], mode="count_analysis")
-            st.subheader("")
-
+            show_count_analysis_charts(metric_df[config.COUNT_ANALYSIS_COLS])
+            
             # Show user involvement chart
-            st.subheader("User Involvement")
-            show_metric_charts(metric_df[config.USER_INVOLVEMENT_COLS], mode="user_involvement")
-            st.subheader("")
-
+            show_user_involvement_charts(metric_df[config.USER_INVOLVEMENT_COLS])
+            
             # Show word cloud chart
-            st.subheader("Word Cloud")
             show_wordcloud(df, queries)
-            st.subheader("")
+            
             
             # Show tweet details
-            st.subheader("Tweet Details")
             show_tweet_details(df, queries, max_tweets=30)
