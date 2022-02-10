@@ -55,7 +55,7 @@ def show_home():
 Content: Tweet Trends
 ==================================================================================
 
-Includes tweet trends
+Includes tweet trends and tweet count charts
 
 """
 
@@ -84,14 +84,6 @@ def show_tweet_trends():
         st.subheader("")
 
 
-"""
-==================================================================================
-Content: Tweet Count Charts
-==================================================================================
-
-Includes tweet count charts
-
-"""
 def set_bubble_charts(value_col, source):
 
     # Transform data
@@ -148,12 +140,16 @@ def show_tweet_count_chart():
         st.subheader("")
 
 
+def show_trend():
+    show_tweet_trends()
+    show_tweet_count_chart()
+
 """
 ==================================================================================
-Content: Count Analysis Charts
+Content: Public Analysis
 ==================================================================================
 
-Includes count analysis charts
+Includes count analysis charts, user involvement charts and sentiment ratio
 
 """
 def set_donut_charts(value_col, tooltips, source):
@@ -231,14 +227,32 @@ def show_count_analysis_charts():
         st.subheader("")
 
 
-"""
-==================================================================================
-Content: User Involvement Charts
-==================================================================================
+def show_sentiment_count_charts():
+    if st.session_state.get("queries") and st.session_state.get("metric_df") is not None:
+        metric_df = st.session_state.get("metric_df")
 
-Includes user involvement charts
+        # Transform data
+        metric_df = load_transformed_charts_data(metric_df)
+        metric_df["sentiment_total"] = metric_df[config.COUNT_SENTIMENT_COLS].sum(axis=1)
+        metric_df["positive_sentiment_count"] = metric_df["positive_sentiment_count"] / metric_df["sentiment_total"]
+        metric_df["negative_sentiment_count"] = metric_df["negative_sentiment_count"] / metric_df["sentiment_total"]
+        
+        tooltips = [
+            ("query", "@category"), 
+            ("Positif", "@{positive_sentiment_count}{%0.2f}"),
+            ("Negatif", "@{negative_sentiment_count}{%0.2f}")
+        ]
+        chart = figure(width=900, height=300, y_range=metric_df[config.CATEGORY_COL], tooltips=tooltips)
+        chart.hbar(y=config.CATEGORY_COL, left=0, height=0.1, right="positive_sentiment_count", color="#3BACC4", source=metric_df)
+        chart.hbar(y=config.CATEGORY_COL, left="positive_sentiment_count", height=0.1, right=1, color="#C4533B", source=metric_df)
 
-"""
+        st.subheader("Sentiment Ratio")
+        st.bokeh_chart(chart)
+        st.subheader("")
+
+
+
+
 def set_vbar_chart(value_col, tooltips, source):
     chart = figure(
         width=900, height=300, title=format_title(value_col), 
@@ -279,6 +293,11 @@ def show_user_involvement_charts():
         st.bokeh_chart(layout)
         st.subheader("")
 
+
+def show_public_analysis():
+    show_count_analysis_charts()
+    show_user_involvement_charts()
+    show_sentiment_count_charts()
 
 """
 ==================================================================================

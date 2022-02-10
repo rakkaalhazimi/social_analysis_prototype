@@ -18,7 +18,7 @@ def load_data():
 def load_trends_data(queries, df):
     return tweet_trends("1D", queries, df)
 
-@st.cache
+@st.cache(allow_output_mutation=True)
 def load_metric_data(queries, df):
     # Get metrics DataFrame
     metrics_df = query_metric(queries, df)
@@ -33,9 +33,9 @@ def load_metric_data(queries, df):
     user_df = user_involvement(metric_count_df)
 
     # Return last concatenated DataFrame
-    return  user_df
+    return user_df
 
-@st.cache
+@st.cache(allow_output_mutation=True)
 def load_transformed_charts_data(df):
     len_data = df.shape[0]
     color_gen = color_generator()
