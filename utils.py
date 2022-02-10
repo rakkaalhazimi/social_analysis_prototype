@@ -1,11 +1,13 @@
 import re
 from itertools import cycle
 
+import streamlit as st
 from bokeh.layouts import row
-from bokeh.palettes import Bokeh8
+from bokeh.palettes import Category10_10
+from wordcloud import WordCloud
 
 
-COLORS = Bokeh8
+COLORS = Category10_10
 
 def color_generator():
     for color in cycle(COLORS):
@@ -20,8 +22,17 @@ def format_date(row_date):
 def replace_wspace(text):
     return text.replace(" ", "_")
 
+@st.cache
 def filter_tweet_count(series, query):
     return series.str.contains(query, flags=re.IGNORECASE).sum()
+
+@st.cache
+def filter_tweets(df, query):
+    return df.str.contains(query, flags=re.IGNORECASE)
+
+@st.cache
+def gen_wordcloud(text, **kwargs):
+    return WordCloud(**kwargs).generate(text)
 
 def join_queries(queries):
     if queries is None:

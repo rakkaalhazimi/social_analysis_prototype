@@ -14,11 +14,11 @@ from utils import color_generator
 def load_data():
     return pd.read_csv(config.DATA_PATH, parse_dates=[config.DATE_COL], index_col=config.DATE_COL)
 
-
+@st.cache
 def load_trends_data(queries, df):
     return tweet_trends("1D", queries, df)
 
-
+@st.cache
 def load_metric_data(queries, df):
     # Get metrics DataFrame
     metrics_df = query_metric(queries, df)
@@ -35,7 +35,7 @@ def load_metric_data(queries, df):
     # Return last concatenated DataFrame
     return  user_df
 
-
+@st.cache
 def load_transformed_charts_data(df):
     len_data = df.shape[0]
     color_gen = color_generator()
@@ -46,7 +46,7 @@ def load_transformed_charts_data(df):
 
     return df
 
-
+@st.cache
 def load_tweet_template():
     with open(config.TWEET_TEMPLATE_PATH, "r") as template:
         return template.read()

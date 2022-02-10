@@ -11,11 +11,11 @@ from bokeh.transform import cumsum
 from bokeh.models import (
     Div, DatetimeTickFormatter, Panel, Tabs
     )
-from wordcloud import WordCloud
+
 
 import config
 from loader import load_stopwords, load_transformed_charts_data, load_tweet_template, load_data, load_trends_data, load_metric_data, load_tweet_style
-from utils import arange_charts, color_generator, format_title, replace_wspace, remove_duplicates, join_queries
+from utils import arange_charts, color_generator, format_title, replace_wspace, remove_duplicates, join_queries, filter_tweets, gen_wordcloud
 
 
 # Load Data
@@ -300,16 +300,17 @@ def show_wordcloud():
             fig = plt.figure(figsize=(8, 8))
 
             # Filter data
-            filters = df[config.TEXT_COL].str.contains(query, flags=re.IGNORECASE)
+            filters = filter_tweets(df[config.TEXT_COL], query)
             sorted_df = df[filters].sort_values(by=[config.REPLY_COL]).head(200)
             text = sorted_df[config.TEXT_CLEAN_COL].str.cat(sep=" ")
 
-            wcloud = WordCloud(
+            wcloud = gen_wordcloud(
+                text,
                 background_color="white",
                 max_words=1000,
                 mask=mask,
                 stopwords=stopwords,
-            ).generate(text)
+            )
 
             plt.imshow(wcloud, interpolation="bilinear")
             plt.axis("off")
@@ -340,7 +341,7 @@ def show_tweet_details():
             tweet_list = []
 
             # Filter data
-            filter = df[config.TEXT_COL].str.contains(query, flags=re.IGNORECASE)
+            filter = filter_tweets(df[config.TEXT_COL], query)
             filtered_df = df[filter]
 
             # Sort data
