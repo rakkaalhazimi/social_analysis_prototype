@@ -148,8 +148,8 @@ def set_donut_charts(value_col, tooltips, source):
     chart.grid.grid_line_color = None
     chart.axis.axis_label = None
     chart.axis.visible = False
-    chart.legend.orientation = "vertical"
     chart.toolbar.logo = None
+    chart.legend.label_text_font_size = "12px"
 
     return chart
 
@@ -221,10 +221,12 @@ def show_sentiment_count_charts():
             ("Negatif", "@{negative_sentiment_count}{%0.2f}")
         ]
         chart = figure(width=900, height=300, y_range=metric_df[config.CATEGORY_COL], tooltips=tooltips, tools=[])
-        chart.hbar(y=config.CATEGORY_COL, left=0, height=0.1, right="positive_sentiment_count", color="#3BACC4", source=metric_df)
-        chart.hbar(y=config.CATEGORY_COL, left="positive_sentiment_count", height=0.1, right=1, color="#C4533B", source=metric_df)
+        chart.hbar(y=config.CATEGORY_COL, left=0, height=0.2, right="positive_sentiment_count", color="#3BACC4", source=metric_df)
+        chart.hbar(y=config.CATEGORY_COL, left="positive_sentiment_count", height=0.2, right=1, color="#C4533B", source=metric_df)
         
         chart.xaxis.visible = False
+        chart.yaxis.major_tick_line_color = None
+        chart.yaxis.major_label_text_font_size = "12px"
         chart.grid.grid_line_color = None
 
         st.subheader("Sentiment Ratio")
@@ -237,9 +239,21 @@ def show_sentiment_count_charts():
 def set_vbar_chart(value_col, tooltips, source):
     chart = figure(
         width=900, height=450, title=format_title(value_col), 
-        x_range=source[config.CATEGORY_COL], tools=[], tooltips=tooltips)
+        x_range=source[config.CATEGORY_COL], 
+        y_range=(0, 1.1 * source[value_col].max()), 
+        tools=[], 
+        tooltips=tooltips)
+
     chart.vbar(x=config.CATEGORY_COL, bottom=0, top=value_col, width=0.2, color=config.COLOR_COL, source=source)
     chart.yaxis[0].formatter = NumeralTickFormatter(format="0a")
+
+    source_label = source.copy()
+    source_label["value_text"] = source_label[value_col].astype(str)
+
+    source_label = ColumnDataSource(source_label.copy())
+    labels = LabelSet(x=config.CATEGORY_COL, y=value_col, x_offset=-25, y_offset=10, text="value_text", source=source_label)
+    chart.add_layout(labels)
+
     return chart
 
 
