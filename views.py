@@ -87,6 +87,7 @@ def show_tweet_trends():
 def show_tweet_count_chart():
     if st.session_state.get("queries") and st.session_state.get("metric_df") is not None:
         metric_df = st.session_state.get("metric_df")
+        metric_df = load_transformed_charts_data(metric_df)
 
         if len(metric_df) >= 2:
             tooltips = [("query", "@category"), ("count", "@tweets_count{0,0}")]
