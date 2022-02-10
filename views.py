@@ -9,7 +9,7 @@ from bokeh.plotting import figure
 from bokeh.layouts import column
 from bokeh.transform import cumsum
 from bokeh.models import (
-    Div, DatetimeTickFormatter, Panel, Tabs
+    Div, DatetimeTickFormatter, Panel, Tabs, NumeralTickFormatter
     )
 
 
@@ -89,36 +89,11 @@ def set_bubble_charts(value_col, source):
     # Transform data
     source = load_transformed_charts_data(source)
     
-    data = source[value_col]
-
-    width = 900
-    height = 420
-    cols = 3
-    rows = ceil(len(data) / cols)
-    y_pad = (width // height) * 2 / 10
-    x_range = (-1, cols)
-    y_range = (-(y_pad * rows) + 0.2, 0 + 0.2)
     tooltips = [("query", f"@{config.CATEGORY_COL}"), ("counts", f"@{value_col}")]
 
-    chart = figure(width=width, height=height, x_range=x_range, y_range=y_range, tools=[], tooltips=tooltips)
+    chart = figure(width=900, height=420, x_range=source[config.CATEGORY_COL], tools=[], tooltips=tooltips)
 
-    x, y = [], []
-    row, col = 0, 0
-    sizes = [value / sum(data) * (width // 2) for value in data]
-
-    for i in range(len(data)):
-        x.append(col)
-        y.append(row)
-
-        if col == cols - 1:
-            col = 0
-            row -= y_pad
-        else:
-            col += 1
-
-    source["x"], source["y"], source["sizes"] = x, y, sizes
-
-    chart.hex(x="x", y="y", legend_field=config.CATEGORY_COL, size="sizes", color=config.COLOR_COL, source=source)
+    chart.circle(x=config.CATEGORY_COL, y=0, legend_field=config.CATEGORY_COL, size="sizes", color=config.COLOR_COL, source=source)
 
     chart.axis.axis_label=None
     chart.axis.visible=False
@@ -258,6 +233,7 @@ def set_vbar_chart(value_col, tooltips, source):
         width=900, height=300, title=format_title(value_col), 
         x_range=source[config.CATEGORY_COL], tools=[], tooltips=tooltips)
     chart.vbar(x=config.CATEGORY_COL, bottom=0, top=value_col, width=0.2, color=config.COLOR_COL, source=source)
+    chart.yaxis[0].formatter = NumeralTickFormatter(format="0a")
     return chart
 
 
