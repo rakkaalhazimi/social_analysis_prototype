@@ -14,9 +14,12 @@ from bokeh.models import (
 from wordcloud import WordCloud
 
 import config
-from loader import load_stopwords, load_transformed_charts_data, load_tweet_template
-from utils import arange_charts, color_generator, format_title, replace_wspace
+from loader import load_stopwords, load_transformed_charts_data, load_tweet_template, load_data, load_trends_data, load_metric_data, load_tweet_style
+from utils import arange_charts, color_generator, format_title, replace_wspace, remove_duplicates, join_queries
 
+
+# Load Data
+df = load_data()
 
 """
 ==================================================================================
@@ -27,13 +30,25 @@ Includes search bar and logo
 
 """
 def show_logo(title):
-    st.subheader(title)
+    st.title(title)
 
 def show_search_bar():
-    options = st.text_input(label="Masukkan Nama Lengkap", value="Anies Baswedan", placeholder="Ex: Anies Baswedan, Ganjar Pranowo")
+    queries = join_queries(st.session_state.get("queries"))
+    options = st.text_input(
+        label="Masukkan Nama Lengkap", 
+        value=queries or "Anies Baswedan", 
+        placeholder="Ex: Anies Baswedan, Ganjar Pranowo")
     return options.split(",")
 
+def show_home():
+    show_logo("Harian Kompas")
 
+    queries = show_search_bar()
+    queries = remove_duplicates(queries)
+    if "" not in queries:
+        st.session_state["queries"] = queries
+        st.session_state["metric_df"] = load_metric_data(st.session_state["queries"], df)
+        st.session_state["trends_df"] = load_trends_data(st.session_state["queries"], df)
 
 """
 ==================================================================================
@@ -45,24 +60,28 @@ Includes tweet trends
 """
 
 # Timeline Chart
-def show_tweet_trends(queries, trends):
-    tooltips = [("Date", "@date{%F}")] + [(f"{query}", f"@{replace_wspace(query)}" + "{0,0}") for query in queries]
+def show_tweet_trends():
+    if st.session_state.get("queries") and st.session_state.get("trends_df") is not None:
+        trends = st.session_state["trends_df"]
+        queries = st.session_state["queries"]
 
-    p = figure(width=900, height=420, x_axis_type="datetime", tools=[], tooltips=tooltips, title="Tweets Trend")
+        tooltips = [("Date", "@date{%F}")] + [(f"{query}", f"@{replace_wspace(query)}" + "{0,0}") for query in queries]
 
-    for query, color in zip(queries, color_generator()):
-        p.line(x="date", y=replace_wspace(query), legend_label=query, color=color, source=trends)
-        p.scatter(x="date", y=replace_wspace(query), legend_label=query, color=color, source=trends)
+        p = figure(width=900, height=420, x_axis_type="datetime", tools=[], tooltips=tooltips, title="Tweets Trend")
 
-    p.xaxis.major_label_orientation = "horizontal"
-    p.xaxis.formatter = DatetimeTickFormatter(days="%Y-%m-%d")
-    p.hover.formatters = {"@date": "datetime"}
-    p.legend.location = "top_left"
-    p.legend.background_fill_alpha = 0.3
+        for query, color in zip(queries, color_generator()):
+            p.line(x="date", y=replace_wspace(query), legend_label=query, color=color, source=trends)
+            p.scatter(x="date", y=replace_wspace(query), legend_label=query, color=color, source=trends)
 
-    st.subheader("Tweets Trends")
-    st.bokeh_chart(p)
-    st.subheader("")
+        p.xaxis.major_label_orientation = "horizontal"
+        p.xaxis.formatter = DatetimeTickFormatter(days="%Y-%m-%d")
+        p.hover.formatters = {"@date": "datetime"}
+        p.legend.location = "top_left"
+        p.legend.background_fill_alpha = 0.3
+
+        st.subheader("Tweets Trends")
+        st.bokeh_chart(p)
+        st.subheader("")
 
 
 """
@@ -115,16 +134,18 @@ def set_bubble_charts(value_col, source):
     return chart
 
 
-def show_tweet_count_chart(metric_df):
-    metric_names = metric_df.columns
-    if len(metric_df) >= 2:
-        chart = set_bubble_charts(config.TWEET_COUNT_COL, metric_df)
-    else:
-        chart = set_text_chart(300, 300, config.TWEET_COUNT_COL, metric_df)
-    
-    st.subheader("Tweets Count")
-    st.bokeh_chart(chart)
-    st.subheader("")
+def show_tweet_count_chart():
+    if st.session_state.get("queries") and st.session_state.get("metric_df") is not None:
+        metric_df = st.session_state.get("metric_df")
+
+        if len(metric_df) >= 2:
+            chart = set_bubble_charts(config.TWEET_COUNT_COL, metric_df)
+        else:
+            chart = set_text_chart(300, 300, config.TWEET_COUNT_COL, metric_df)
+        
+        st.subheader("Tweets Count")
+        st.bokeh_chart(chart)
+        st.subheader("")
 
 
 """
@@ -174,38 +195,40 @@ def set_text_chart(width, height, value_col, source):
     return chart
 
 
-def show_count_analysis_charts(metric_df):
-    charts = []
-    metric_names = metric_df.columns
+def show_count_analysis_charts():
+    if st.session_state.get("queries") and st.session_state.get("metric_df") is not None:
+        charts = []
+        metric_df = st.session_state.get("metric_df")
+        metric_names = config.COUNT_ANALYSIS_COLS
 
-    # Transform data
-    metric_df = load_transformed_charts_data(metric_df)
+        # Transform data
+        metric_df = load_transformed_charts_data(metric_df)
 
-    for _, value_col in enumerate(metric_names):
-        tooltips = [("query", "@category"), (f"{value_col}", "@" + value_col + "{0,0}")]
+        for _, value_col in enumerate(metric_names):
+            tooltips = [("query", "@category"), (f"{value_col}", "@" + value_col + "{0,0}")]
 
-        if len(metric_df) >= 2:
-            chart = set_donut_charts(value_col, tooltips, metric_df)
+            if len(metric_df) >= 2:
+                chart = set_donut_charts(value_col, tooltips, metric_df)
 
-        else:
-            chart = set_text_chart(300, 300, value_col, metric_df)
+            else:
+                chart = set_text_chart(300, 300, value_col, metric_df)
+                
+            # Chart Properties
+            chart.legend.location = "bottom_left"
+            chart.legend.orientation = "horizontal"
+            chart.hover.mode = "mouse"
             
-        # Chart Properties
-        chart.legend.location = "bottom_left"
-        chart.legend.orientation = "horizontal"
-        chart.hover.mode = "mouse"
-        
-        
-        # chart.background_fill_color = "#DAF7A6"
+            
+            # chart.background_fill_color = "#DAF7A6"
 
-        charts.append(chart)
+            charts.append(chart)
 
-    layouts = arange_charts(charts, cols=3)
-    grid_layout = column(*layouts)
-    
-    st.subheader("Count Analysis")
-    st.bokeh_chart(grid_layout)
-    st.subheader("")
+        layouts = arange_charts(charts, cols=3)
+        grid_layout = column(*layouts)
+        
+        st.subheader("Count Analysis")
+        st.bokeh_chart(grid_layout)
+        st.subheader("")
 
 
 """
@@ -224,57 +247,37 @@ def set_vbar_chart(value_col, tooltips, source):
     return chart
 
 
-def show_user_involvement_charts(metric_df):
-    charts = []
-    metric_names = metric_df.columns
+def show_user_involvement_charts():
+    if st.session_state.get("queries") and st.session_state.get("metric_df") is not None:
+        charts = []
+        metric_df = st.session_state.get("metric_df")
+        metric_names = config.USER_INVOLVEMENT_COLS
 
-    # Transform data
-    metric_df = load_transformed_charts_data(metric_df)
+        # Transform data
+        metric_df = load_transformed_charts_data(metric_df)
 
-    for _, value_col in enumerate(metric_names):
-        tooltips = [("query", "@category"), (f"{value_col}", "@" + value_col + "{0,0}")]
+        for _, value_col in enumerate(metric_names):
+            tooltips = [("query", "@category"), (f"{value_col}", "@" + value_col + "{0,0}")]
+
+            if len(metric_df) >= 2:
+                chart = set_vbar_chart(value_col, tooltips, metric_df)
+                charts.append(chart)
+                charts.append(Div(height=100))
+
+            else:
+                chart = set_text_chart(300, 300, value_col, metric_df)
+                charts.append(chart)
 
         if len(metric_df) >= 2:
-            chart = set_vbar_chart(value_col, tooltips, metric_df)
-            charts.append(chart)
-            charts.append(Div(height=100))
-
+            layout = column(*charts)
         else:
-            chart = set_text_chart(300, 300, value_col, metric_df)
-            charts.append(chart)
-
-    if len(metric_df) >= 2:
-        layout = column(*charts)
-    else:
-        layout = arange_charts(charts, cols=3)
-        layout = column(*layout)
+            layout = arange_charts(charts, cols=3)
+            layout = column(*layout)
 
 
-    st.subheader("User Involvement")
-    st.bokeh_chart(layout)
-    st.subheader("")
-
-
-"""
-==================================================================================
-Wrap All Metrics
-==================================================================================
-
-Controller to show metric charts
-
-"""
-
-def show_metric_charts(metric_df, mode):
-    # Initiate parameter
-    mode_charts = {
-        "tweet_count": show_tweet_count_chart,
-        "count_analysis": show_count_analysis_charts,
-        "user_involvement": show_user_involvement_charts
-    }
-
-    # Show chart
-    chart = mode_charts[mode](metric_df)
-    st.bokeh_chart(chart)
+        st.subheader("User Involvement")
+        st.bokeh_chart(layout)
+        st.subheader("")
 
 
 """
@@ -285,33 +288,36 @@ Content: Word Clouds
 Includes word cloud on every query
 
 """
-def show_wordcloud(df, queries):
+def show_wordcloud():
+    st.subheader("Word Cloud")
 
-    mask = np.array(Image.open("src/images/twitter.jpg"))
-    stopwords = load_stopwords() + ["yg", "nya"]
-    
-    for query in queries:
-        fig = plt.figure(figsize=(10, 10))
+    if st.session_state.get("queries"):
+        queries = st.session_state.get("queries")
+        mask = np.array(Image.open("src/images/twitter.jpg"))
+        stopwords = load_stopwords() + ["yg", "nya"]
+        
+        for query in queries:
+            fig = plt.figure(figsize=(8, 8))
 
-        # Filter data
-        filters = df[config.TEXT_COL].str.contains(query, flags=re.IGNORECASE)
-        sorted_df = df[filters].sort_values(by=[config.REPLY_COL]).head(200)
-        text = sorted_df[config.TEXT_CLEAN_COL].str.cat(sep=" ")
+            # Filter data
+            filters = df[config.TEXT_COL].str.contains(query, flags=re.IGNORECASE)
+            sorted_df = df[filters].sort_values(by=[config.REPLY_COL]).head(200)
+            text = sorted_df[config.TEXT_CLEAN_COL].str.cat(sep=" ")
 
-        wcloud = WordCloud(
-            background_color="white",
-            max_words=1000,
-            mask=mask,
-            stopwords=stopwords,
-        ).generate(text)
+            wcloud = WordCloud(
+                background_color="white",
+                max_words=1000,
+                mask=mask,
+                stopwords=stopwords,
+            ).generate(text)
 
-        plt.imshow(wcloud, interpolation="bilinear")
-        plt.axis("off")
-        plt.title(f"{query} words", fontdict=dict(fontsize=10))
+            plt.imshow(wcloud, interpolation="bilinear")
+            plt.axis("off")
+            plt.title(f"{query} words", fontdict=dict(fontsize=10))
 
-        st.subheader("Word Cloud")
-        st.pyplot(fig)
-        st.subheader("")
+            
+            st.pyplot(fig)
+            st.subheader("")
 
 
 """
@@ -322,44 +328,47 @@ Content: Tweet Details
 Includes tweet from user
 
 """
-def show_tweet_details(df, queries, max_tweets):
-    panels = []
-
-    for query in queries:
-        tweet_list = []
-
-        # Filter data
-        filter = df[config.TEXT_COL].str.contains(query, flags=re.IGNORECASE)
-        filtered_df = df[filter]
-
-        # Sort data
-        filtered_df = filtered_df.sort_values(by=[config.REPLY_COL], ascending=False)
-        filtered_df[config.DATE_COL] = filtered_df.index.strftime("%d %B %Y")
-        filtered_df = filtered_df.reset_index(drop=True).fillna(0)
-
-        for index, row in filtered_df.iterrows():
-            if index > max_tweets:
-                break
-            
-            template = load_tweet_template().format(
-                name=row[config.USERNAME_COL],
-                date=row[config.DATE_COL],
-                content=row[config.TEXT_COL],
-                sentiment=row[config.SENTIMENT_COL],
-                reply=int( row[config.REPLY_COL] ),
-                retweet=int( row[config.RETWEET_COL] ),
-                like=int( row[config.LIKE_COL] ),
-            )
-
-            tweet_card = Div(
-                text=template, 
-                width=900, sizing_mode="scale_width")
-            
-            tweet_list.append(tweet_card)
-
-        panels.append( Panel(child=column(*tweet_list), title=query) )
-    
-    layouts = Tabs(tabs=panels)
-    
+def show_tweet_details():
     st.subheader("Tweet Details")
-    st.bokeh_chart(layouts)
+    max_tweets = 30
+    
+    if st.session_state.get("queries"):
+        queries = st.session_state.get("queries")
+        panels = []
+
+        for query in queries:
+            tweet_list = []
+
+            # Filter data
+            filter = df[config.TEXT_COL].str.contains(query, flags=re.IGNORECASE)
+            filtered_df = df[filter]
+
+            # Sort data
+            filtered_df = filtered_df.sort_values(by=[config.REPLY_COL], ascending=False)
+            filtered_df[config.DATE_COL] = filtered_df.index.strftime("%d %B %Y")
+            filtered_df = filtered_df.reset_index(drop=True).fillna(0)
+
+            for index, row in filtered_df.iterrows():
+                if index > max_tweets:
+                    break
+                
+                template = load_tweet_template().format(
+                    name=row[config.USERNAME_COL],
+                    date=row[config.DATE_COL],
+                    content=row[config.TEXT_COL],
+                    sentiment=row[config.SENTIMENT_COL],
+                    reply=int( row[config.REPLY_COL] ),
+                    retweet=int( row[config.RETWEET_COL] ),
+                    like=int( row[config.LIKE_COL] ),
+                )
+
+                tweet_card = Div(
+                    text=template, 
+                    width=900, sizing_mode="scale_width")
+                
+                tweet_list.append(tweet_card)
+
+            panels.append( Panel(child=column(*tweet_list), title=query) )
+        
+        layouts = Tabs(tabs=panels)
+        st.bokeh_chart(layouts)

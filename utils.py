@@ -23,6 +23,12 @@ def replace_wspace(text):
 def filter_tweet_count(series, query):
     return series.str.contains(query, flags=re.IGNORECASE).sum()
 
+def join_queries(queries):
+    if queries is None:
+        return False
+    else:
+        return ",".join(queries)
+
 def remove_duplicates(items):
     item_list = []
     filtered = []
