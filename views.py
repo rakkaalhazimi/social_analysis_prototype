@@ -496,21 +496,21 @@ def get_node_edges(df, source, target, queries):
     return nodes, edges
 
 def build_network():
-    if st.session_state.get("queries"):
-        social_net = Network(height="600px", width="900px", bgcolor="#111", font_color="#fff", directed=False)
-        nodes, edges = get_node_edges(df, "in_reply_to_screen_name", "user.screen_name", st.session_state.get("queries"))
 
-        for node in nodes:
-            social_net.add_node(node.name, color=node.color, physics=False)
+    social_net = Network(height="600px", width="900px", bgcolor="#111", font_color="#fff", directed=False)
+    nodes, edges = get_node_edges(df, "in_reply_to_screen_name", "user.screen_name", st.session_state.get("queries"))
 
-        for edge in edges:
-            social_net.add_edge(edge.root, edge.leaf)
+    for node in nodes:
+        social_net.add_node(node.name, color=node.color, physics=False)
 
-        social_net.barnes_hut()
-        social_net.save_graph("src/template/social.html")
-        
-        HTMLfile = open("src/template/social.html", "r", encoding="utf-8")
-        components.html(HTMLfile.read(), width=900, height=600)
+    for edge in edges:
+        social_net.add_edge(edge.root, edge.leaf)
+
+    social_net.barnes_hut()
+    social_net.save_graph("src/template/social.html")
+    
+    HTMLfile = open("src/template/social.html", "r", encoding="utf-8")
+    components.html(HTMLfile.read(), width=900, height=600)
 
 
 def show_network():
@@ -520,5 +520,8 @@ def show_network():
     Graph merupakan struktur data tidak linier yang terdiri dari node dan edge, yang mana node merepresentasikan
     pengguna dan edge merepresentasikan hubungan antar pengguna.
     """)
-    build_network()
+    if st.session_state.get("queries"):
+        st.markdown("**query**")
+        st.write(" ".join(st.session_state.get("queries")))
+        build_network()
     
