@@ -43,9 +43,26 @@ def show_search_bar():
         placeholder="Ex: Anies Baswedan, Ganjar Pranowo")
     return options.split(",")
 
+def show_descriptions():
+    st.write("""
+    Harian Kompas merupakan aplikasi analisis sosial yang digunakan untuk melihat 
+    tanggapan publik mengenai orang, kejadian atau objek tertentu melalui pencarian kata kunci.
+    Pencarian dilakukan dengan menyaring data secara realtime dari beberapa sosial media terkenal seperti
+    twitter dan instagram. Hasil dari data yang didapat kemudian disajikan dalam berbagai bentuk visualisasi
+    diagram sehingga dapat membantu dalam proses analisa dan pengambilan keputusan. Selain visualisasi, aplikasi
+    ini juga akan melakukan prediksi sentimen yang nantinya dapat dilihat untuk menilai bagaimana respon publik
+    terhadap bahasan tertentu.
+    """)
+
 def show_home():
     show_logo("Harian Kompas")
+    show_descriptions()
 
+    st.subheader("Mulai Menggunakan")
+    st.write("""
+    Pengguna dapat memulai dengan memasukkan kata kunci terlebih dahulu. Setelah itu,
+    pengguna dapat melihat hasil analisa pada panel navigasi di sebelah kiri.
+    """)
     queries = show_search_bar()
     queries = remove_duplicates(queries)
     if "" not in queries:
@@ -82,7 +99,7 @@ def show_tweet_trends():
         p.legend.location = "top_left"
         p.legend.background_fill_alpha = 0.3
 
-        st.subheader("Tweets Trends")
+        
         st.bokeh_chart(p)
         st.subheader("")
 
@@ -98,13 +115,21 @@ def show_tweet_count_chart():
         else:
             chart = set_text_chart(300, 300, config.TWEET_COUNT_COL, metric_df)
         
-        st.subheader("Tweets Count")
         st.bokeh_chart(chart)
         st.subheader("")
 
 
 def show_trend():
+    st.subheader("Tweets Trends")
+    st.write("""
+    Tweet Trends adalah kecenderungan suatu bahasan untuk muncul ke permukaan. Tren digambarkan dengan
+    jumlah tweet di setiap kata kunci dalam beberapa unit waktu (hari).
+    """)
     show_tweet_trends()
+    st.subheader("Tweets Count")
+    st.write("""
+    Tweet Count adalah keseluruhan jumlah tweet di setiap kata kunci.
+    """)
     show_tweet_count_chart()
 
 """
@@ -200,9 +225,7 @@ def show_count_analysis_charts():
         layouts = arange_charts(charts, cols=2)
         grid_layout = column(*layouts)
         
-        st.subheader("Count Analysis")
         st.bokeh_chart(grid_layout)
-        st.subheader("")
 
 
 def show_sentiment_count_charts():
@@ -229,9 +252,7 @@ def show_sentiment_count_charts():
         chart.yaxis.major_label_text_font_size = "12px"
         chart.grid.grid_line_color = None
 
-        st.subheader("Sentiment Ratio")
         st.bokeh_chart(chart)
-        st.subheader("")
 
 
 
@@ -284,15 +305,46 @@ def show_user_involvement_charts():
             layout = arange_charts(charts, cols=3)
             layout = column(*layout)
 
-
-        st.subheader("User Involvement")
         st.bokeh_chart(layout)
-        st.subheader("")
+        
 
 
 def show_public_analysis():
+
+    st.subheader("Count Analysis")
+    st.markdown("""
+    Count Analysis merupakan perhitungan suatu aspek yang terdapat pada tweet. Aspek-aspek
+    yang dimaksud meliputi:
+    - **Viral Count**  
+      Jumlah tweet yang viral. Tweet dianggap viral apabila jumlah reply, like atau retweet mencapai angka 1,000.
+    - **Influencer Count**  
+      Jumlah akun influencer. Akun dianggap sebagai influencer apabila jumlah followers yang dimiliki mencapai angka 1,000.
+    - **Sensitive Count**
+      Jumlah tweet yang sensitif. Tweet dianggap sensitif apabila konten dalam tweet dianggap tidak layak untuk dipertontonkan, 
+      seperti kata-kata kasar dan kekerasan.
+    """)
     show_count_analysis_charts()
+    st.subheader("")
+
+    st.subheader("User Involvement")
+    st.markdown("""
+    User Involvement merupakan tingkat keterlibatan pengguna dalam sebuah bahasan tweet. Jenis keterlibatan yang 
+    dipakai terdiri dari:
+    - **Interactions**  
+      Jumlah interaksi pengguna pada tweet, ditentukan dengan melihat jumlah komentar dan jumlah retweet yang ditambahkan
+      komentar.
+    - **Potential User Reach**  
+      Jumlah ketercapaian terhadap pengguna lain, ditentukan dengan melihat jumlah retweet dan like.
+      
+    """)
     show_user_involvement_charts()
+    st.subheader("")
+
+    st.subheader("Sentiment Ratio")
+    st.markdown("""
+    Sentimen Ratio adalah proporsi sentimen pada tiap kata kunci, menjelaskan bagaimana sikap publik terhadap
+    suatu bahasan apakah cenderung positif atau negatif.
+    """)
     show_sentiment_count_charts()
 
 """
@@ -305,6 +357,11 @@ Includes word cloud on every query
 """
 def show_wordcloud():
     st.subheader("Word Cloud")
+    st.markdown("""
+    Word Cloud merupakan kumpulan kata yang digunakan oleh para pengguna media sosial suatu kata
+    kunci. Kata-kata ditampilkan dalam bentuk gambar yang berisikan yang mana memuat kata-kata yang sering
+    muncul.
+    """)
 
     if st.session_state.get("queries"):
         queries = st.session_state.get("queries")
@@ -346,6 +403,9 @@ Includes tweet from user
 """
 def show_tweet_details():
     st.subheader("Tweet Details")
+    st.markdown("""
+    Tweet Details adalah bentuk asli dari tweet pengguna sosial media itu sendiri.
+    """)
     max_tweets = 30
     
     if st.session_state.get("queries"):
