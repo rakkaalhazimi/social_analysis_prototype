@@ -174,9 +174,9 @@ def set_donut_charts(value_col, tooltips, source):
     source_copy[value_col] = source_copy[value_col].astype("str")
     source_copy[value_col] = source_copy[value_col].str.pad(15, side="left")
 
-    # source_copy = ColumnDataSource(source_copy)
-    # label = LabelSet(x=0, y=0, text=value_col, angle=cumsum(angle_col, include_zero=True), text_color="white", source=source_copy, render_mode="canvas")
-    # chart.add_layout(label)
+    source_copy = ColumnDataSource(source_copy)
+    label = LabelSet(x=0, y=0, text=value_col, angle=cumsum(angle_col, include_zero=True), text_color="white", source=source_copy, render_mode="canvas")
+    chart.add_layout(label)
 
     chart.grid.grid_line_color = None
     chart.axis.axis_label = None
