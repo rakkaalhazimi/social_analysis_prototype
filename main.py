@@ -1,11 +1,13 @@
 import streamlit as st
 from loader import load_tweet_style
+from styles import set_style
 from views import (
     show_home, show_trend, show_public_analysis, show_tweet_details, show_wordcloud
     )
 
 # Initial Load
 load_tweet_style()
+set_style()
 
 PAGES = {
     "Home": show_home,
