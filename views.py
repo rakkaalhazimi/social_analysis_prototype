@@ -145,7 +145,7 @@ def set_donut_charts(value_col, tooltips, source):
     source[angle_col] = source[value_col] / source[value_col].sum() * 2 * pi
     
 
-    chart = figure(width=450, height=450, title=format_title(value_col), x_range=(-1, 1), y_range=(-1, 1), tooltips=tooltips)
+    chart = figure(width=450, height=450, title=format_title(value_col), x_range=(-1, 1), y_range=(-1, 1), tooltips=tooltips, tools=[])
     wedge = chart.annular_wedge(
                     x=0, y=0, 
                     inner_radius=0.2, outer_radius=0.5,
