@@ -182,7 +182,8 @@ def set_donut_charts(value_col, tooltips, source):
     chart.axis.axis_label = None
     chart.axis.visible = False
     chart.toolbar.logo = None
-    chart.legend.label_text_font_size = "12px"
+    chart.legend.label_text_font_size = "11px"
+    chart.legend.padding = 0
 
     return chart
 
