@@ -22,6 +22,7 @@ def format_date(row_date):
 def replace_wspace(text):
     return text.replace(" ", "_")
 
+
 @st.cache
 def filter_tweet_count(series, query):
     return series.str.contains(query, flags=re.IGNORECASE).sum()
@@ -29,6 +30,21 @@ def filter_tweet_count(series, query):
 @st.cache
 def filter_tweets(df, query):
     return df.str.contains(query, flags=re.IGNORECASE)
+
+
+@st.cache(allow_output_mutation=True)
+def make_relations(df, source, target):
+    df = df.copy()
+    relations = df.groupby(source, as_index=False).agg({target: list})
+    return relations
+
+@st.cache
+def split_relations(relations, target):
+    return relations.explode(target)
+
+def trim_relations(array):
+    return array[:3]
+
 
 @st.cache
 def gen_wordcloud(text, **kwargs):

@@ -1,9 +1,10 @@
-import re
 from math import pi
+from collections import namedtuple
 
 from PIL import Image
 import numpy as np
 import streamlit as st
+import streamlit.components.v1 as components
 import matplotlib.pyplot as plt
 from bokeh.plotting import figure
 from bokeh.layouts import column, row
@@ -11,11 +12,18 @@ from bokeh.transform import cumsum, dodge
 from bokeh.models import (
     Div, DatetimeTickFormatter, Panel, Tabs, NumeralTickFormatter, LabelSet, ColumnDataSource, Legend, LegendItem
     )
-
+from pyvis.network import Network
 
 import config
-from loader import load_stopwords, load_transformed_charts_data, load_tweet_template, load_data, load_trends_data, load_metric_data
-from utils import arange_charts, color_generator, format_title, replace_wspace, remove_duplicates, join_queries, filter_tweets, gen_wordcloud
+from loader import (
+    load_stopwords, load_transformed_charts_data, load_tweet_template, load_data, 
+    load_trends_data, load_metric_data
+    )
+from utils import (
+    arange_charts, color_generator, format_title, replace_wspace, remove_duplicates, 
+    join_queries, filter_tweets, gen_wordcloud, split_relations, make_relations, trim_relations
+
+    )
 
 
 # Streamlit settings
@@ -448,3 +456,69 @@ def show_tweet_details():
         
         layouts = Tabs(tabs=panels)
         st.bokeh_chart(layouts)
+
+
+"""
+==================================================================================
+Content: Tweet Networks
+==================================================================================
+
+Includes tweet networks
+
+"""
+@st.cache
+def get_node_edges(df, source, target, queries):
+    Nodes = namedtuple("Node", "name color")
+    Edges = namedtuple("Edge", "root leaf")
+
+    df = df.copy()
+    nodes, edges = [], []
+    for color, q in zip(color_generator(), queries):
+        # Temporary DataFrame
+        filter_query = filter_tweets(df["full_text"], q)
+        temp_df = df[filter_query].sort_values("user.followers_count", ascending=False)
+        
+        # Relations
+        relations = make_relations(temp_df, source, target)
+        relations["counts"] = relations[target].str.len()
+        relations = relations.sort_values("counts", ascending=False).head(100)
+        relations[target] = relations[target].apply(trim_relations)
+        relations = split_relations(relations, target)
+
+        for _, row in relations.iterrows():
+            root = row["in_reply_to_screen_name"]
+            leaf = row["user.screen_name"]
+            
+            nodes.append(Nodes(name=root, color=color))
+            nodes.append(Nodes(name=leaf, color=color))
+            edges.append(Edges(root=root, leaf=leaf))
+
+    return nodes, edges
+
+def build_network():
+    if st.session_state.get("queries"):
+        social_net = Network(height="600px", width="900px", bgcolor="#111", font_color="#fff", directed=False)
+        nodes, edges = get_node_edges(df, "in_reply_to_screen_name", "user.screen_name", st.session_state.get("queries"))
+
+        for node in nodes:
+            social_net.add_node(node.name, color=node.color, physics=False)
+
+        for edge in edges:
+            social_net.add_edge(edge.root, edge.leaf)
+
+        social_net.barnes_hut()
+        social_net.save_graph("src/template/social.html")
+        
+        HTMLfile = open("src/template/social.html", "r", encoding="utf-8")
+        components.html(HTMLfile.read(), width=900, height=600)
+
+
+def show_network():
+    st.subheader("Social Network")
+    st.write("""
+    Social Network merupakan hubungan antar pengguna media sosial yang divisualisasikan dalam bentuk graph.
+    Graph merupakan struktur data tidak linier yang terdiri dari node dan edge, yang mana node merepresentasikan
+    pengguna dan edge merepresentasikan hubungan antar pengguna.
+    """)
+    build_network()
+    

@@ -2,7 +2,8 @@ import streamlit as st
 from loader import load_tweet_style
 from styles import set_style
 from views import (
-    show_home, show_trend, show_public_analysis, show_tweet_details, show_wordcloud
+    show_home, show_trend, show_public_analysis, show_tweet_details, show_wordcloud,
+    show_network
     )
 
 # Initial Load
@@ -14,7 +15,9 @@ PAGES = {
     "Trends": show_trend,
     "Public Analysis": show_public_analysis,
     "Word Cloud": show_wordcloud,
-    "Tweet Details": show_tweet_details}
+    "Tweet Details": show_tweet_details,
+    "Network": show_network
+}
 
 
 # Sitebar

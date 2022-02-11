@@ -46,6 +46,12 @@ def load_transformed_charts_data(df):
 
     return df
 
+@st.cache(allow_output_mutation=True)
+def load_network_data(df):
+    relations = df.groupby("in_reply_to_status_id_str").agg({"id_str": list})
+    relations = relations.head(100).explode("id_str")
+
+
 @st.cache
 def load_tweet_template():
     with open(config.TWEET_TEMPLATE_PATH, "r") as template:
