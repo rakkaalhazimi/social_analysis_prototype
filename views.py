@@ -282,9 +282,9 @@ def set_vbar_chart(value_col, tooltips, source):
     chart.yaxis[0].formatter = NumeralTickFormatter(format="0a")
 
     source_label = source.copy()
-    source_label["value_text"] = source_label[value_col].astype(str)
+    source_label["value_text"] = source_label[value_col].astype(int).apply("{:,}".format)
 
-    source_label = ColumnDataSource(source_label.copy())
+    source_label = ColumnDataSource(source_label)
     labels = LabelSet(x=config.CATEGORY_COL, y=value_col, x_offset=-25, y_offset=10, text="value_text", source=source_label)
     chart.add_layout(labels)
 
