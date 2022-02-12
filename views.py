@@ -3,6 +3,7 @@ from collections import namedtuple
 
 from PIL import Image
 import numpy as np
+import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 import matplotlib.pyplot as plt
@@ -21,8 +22,8 @@ from loader import (
     )
 from utils import (
     arange_charts, color_generator, format_title, replace_wspace, remove_duplicates, 
-    join_queries, filter_tweets, gen_wordcloud, split_relations, make_relations, trim_relations
-
+    join_queries, filter_tweets, gen_wordcloud, split_relations, make_relations, trim_relations,
+    cumsum_angle
     )
 
 
@@ -171,11 +172,14 @@ def set_donut_charts(value_col, tooltips, source):
     # chart.add_layout(legend, "above")
 
     source_copy = source.copy()
+    source_copy = source_copy.query(f"{angle_col} > 0")
     source_copy[value_col] = source_copy[value_col].astype("str")
-    source_copy[value_col] = source_copy[value_col].str.pad(15, side="left")
+    source_copy[value_col] = source_copy[value_col]
+    source_copy["x"] = np.cos(cumsum_angle(source_copy[angle_col]) - source_copy[angle_col] / 2) / 3 - 0.05
+    source_copy["y"] = np.sin(cumsum_angle(source_copy[angle_col]) - source_copy[angle_col] / 2) / 3
 
     source_copy = ColumnDataSource(source_copy)
-    label = LabelSet(x=0, y=0, text=value_col, angle=cumsum(angle_col, include_zero=True), text_color="white", source=source_copy, render_mode="canvas")
+    label = LabelSet(x="x", y="y", text=value_col, text_color="black", source=source_copy, render_mode="canvas")
     chart.add_layout(label)
 
     chart.grid.grid_line_color = None

@@ -1,5 +1,5 @@
 import re
-from itertools import cycle
+from itertools import cycle, accumulate
 
 import streamlit as st
 from bokeh.layouts import row
@@ -30,6 +30,10 @@ def filter_tweet_count(series, query):
 @st.cache
 def filter_tweets(df, query):
     return df.str.contains(query, flags=re.IGNORECASE)
+
+
+def cumsum_angle(angles):
+    return list(accumulate(angles))
 
 
 @st.cache(allow_output_mutation=True)
