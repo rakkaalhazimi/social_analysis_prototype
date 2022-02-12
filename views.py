@@ -251,21 +251,31 @@ def show_sentiment_count_charts():
         metric_df["positive_sentiment_count"] = metric_df["positive_sentiment_count"] / metric_df["sentiment_total"]
         metric_df["negative_sentiment_count"] = metric_df["negative_sentiment_count"] / metric_df["sentiment_total"]
         
-        tooltips = [
-            ("query", "@category"), 
-            ("Positif", "@{positive_sentiment_count}{%0.2f}"),
-            ("Negatif", "@{negative_sentiment_count}{%0.2f}")
-        ]
-        chart = figure(width=900, height=300, y_range=metric_df[config.CATEGORY_COL], tooltips=tooltips, tools=[])
-        chart.hbar(y=config.CATEGORY_COL, left=0, height=0.2, right="positive_sentiment_count", color="#3BACC4", source=metric_df)
-        chart.hbar(y=config.CATEGORY_COL, left="positive_sentiment_count", height=0.2, right=1, color="#C4533B", source=metric_df)
-        
-        chart.xaxis.visible = False
-        chart.yaxis.major_tick_line_color = None
-        chart.yaxis.major_label_text_font_size = "12px"
-        chart.grid.grid_line_color = None
+        col1, col2, col3 = st.columns([3, 3, 3])
+        for _, row in metric_df.iterrows():
+            with col1:
+                st.markdown("#### {}".format(row[config.CATEGORY_COL]))
+                st.markdown("####")
+            with col2:
+                st.metric("Positif", "{:.2%}".format(row["positive_sentiment_count"]))
+            with col3:
+                st.metric("Negatif", "{:.2%}".format(row["negative_sentiment_count"]))
 
-        st.bokeh_chart(chart)
+        # tooltips = [
+        #     ("query", "@category"), 
+        #     ("Positif", "@{positive_sentiment_count}{%0.2f}"),
+        #     ("Negatif", "@{negative_sentiment_count}{%0.2f}")
+        # ]
+        # chart = figure(width=900, height=300, y_range=metric_df[config.CATEGORY_COL], tooltips=tooltips, tools=[])
+        # chart.hbar(y=config.CATEGORY_COL, left=0, height=0.2, right="positive_sentiment_count", color="#3BACC4", source=metric_df)
+        # chart.hbar(y=config.CATEGORY_COL, left="positive_sentiment_count", height=0.2, right=1, color="#C4533B", source=metric_df)
+        
+        # chart.xaxis.visible = False
+        # chart.yaxis.major_tick_line_color = None
+        # chart.yaxis.major_label_text_font_size = "12px"
+        # chart.grid.grid_line_color = None
+
+        # st.bokeh_chart(chart)
 
 
 
