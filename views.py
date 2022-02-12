@@ -179,7 +179,7 @@ def set_donut_charts(value_col, tooltips, source):
     source_copy["y"] = np.sin(cumsum_angle(source_copy[angle_col]) - source_copy[angle_col] / 2) / 3
 
     source_copy = ColumnDataSource(source_copy)
-    label = LabelSet(x="x", y="y", text=value_col, text_color="black", source=source_copy, render_mode="canvas")
+    label = LabelSet(x="x", y="y", text=value_col, text_color="white", source=source_copy, render_mode="canvas")
     chart.add_layout(label)
 
     chart.grid.grid_line_color = None
