@@ -536,7 +536,15 @@ def show_network():
     pengguna dan edge merepresentasikan hubungan antar pengguna.
     """)
     if st.session_state.get("queries"):
-        st.markdown("**query**")
-        st.write(" ".join(st.session_state.get("queries")))
+        template = ""
+        for color, q in zip(color_generator(), st.session_state.get("queries")):
+            template += """
+            <div>
+              <span style="width: 10px; height: 10px; display: inline-block; background-color: {color}; border: 1px solid #000;">
+              </span>
+              <span>{query}</span>
+            </div>
+            """.format(query=q, color=color)
+        st.markdown(template, unsafe_allow_html=True)
         build_network()
     
