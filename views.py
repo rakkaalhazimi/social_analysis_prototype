@@ -11,7 +11,8 @@ from bokeh.plotting import figure
 from bokeh.layouts import column, row
 from bokeh.transform import cumsum, dodge
 from bokeh.models import (
-    Div, DatetimeTickFormatter, Panel, Tabs, NumeralTickFormatter, LabelSet, ColumnDataSource, Legend, LegendItem
+    Div, DatetimeTickFormatter, Panel, Tabs, NumeralTickFormatter, 
+    Label, LabelSet, ColumnDataSource, Legend, LegendItem
     )
 from pyvis.network import Network
 
@@ -241,6 +242,43 @@ def show_count_analysis_charts():
         st.bokeh_chart(grid_layout)
 
 
+def set_gauge_chart(row):
+    chart = figure(width=300, height=300, y_range=(-0.5, 1), tools=[])
+
+    positive_rad = row["positive_sentiment_count"] * pi
+    negative_rad = row["negative_sentiment_count"] * pi
+
+    source = ColumnDataSource(dict(neg_pos=[negative_rad, positive_rad], 
+                                   color=["#D42B3A", "#2FD06A"],
+                                   label=["Negatif", "Positif"]
+                                   ))
+
+    chart.annular_wedge(x=0, y=0, inner_radius=0.3, outer_radius=0.8,
+                        start_angle=cumsum("neg_pos", include_zero=True), end_angle=cumsum("neg_pos"), 
+                        color="color", legend_field="label", alpha=0.8, source=source)
+    
+    query_label = Label(x=130, y=30, x_units="screen", y_units="screen", text_font_style="bold",
+                        text_align="center", text=row[config.CATEGORY_COL].center(30))
+    chart.add_layout(query_label)
+
+    positive_label = Label(x=60, y=70, x_units="screen", y_units="screen", 
+                           text_align="center", text_color="#2FD06A",
+                           text="{:.2%}".format(row["positive_sentiment_count"]))
+    chart.add_layout(positive_label)
+
+    negative_label = Label(x=210, y=70, x_units="screen", y_units="screen", 
+                           text_align="center", text_color="#D42B3A",
+                           text="{:.2%}".format(row["negative_sentiment_count"]))
+    chart.add_layout(negative_label)
+    
+    chart.grid.grid_line_color = None
+    chart.axis.axis_label = None
+    chart.axis.visible = False
+    chart.toolbar.logo = None
+
+    return chart
+
+
 def show_sentiment_count_charts():
     if st.session_state.get("queries") and st.session_state.get("metric_df") is not None:
         metric_df = st.session_state.get("metric_df")
@@ -251,22 +289,23 @@ def show_sentiment_count_charts():
         metric_df["positive_sentiment_count"] = metric_df["positive_sentiment_count"] / metric_df["sentiment_total"]
         metric_df["negative_sentiment_count"] = metric_df["negative_sentiment_count"] / metric_df["sentiment_total"]
         
-        col1, col2, col3 = st.columns([3, 3, 3])
+        charts = []
         for _, row in metric_df.iterrows():
-            with col1:
-                st.markdown("#### {}".format(row[config.CATEGORY_COL]))
-                st.markdown("####")
-            with col2:
-                st.metric("Positif", "{:.2%}".format(row["positive_sentiment_count"]))
-            with col3:
-                st.metric("Negatif", "{:.2%}".format(row["negative_sentiment_count"]))
+            # st.subheader(row[config.CATEGORY_COL])
+            # st.metric("Positif", "{:.2%}".format(row["positive_sentiment_count"]))
+            # st.metric("Negatif", "{:.2%}".format(row["negative_sentiment_count"]))
+            charts.append(set_gauge_chart(row))
+        
+        row_charts = arange_charts(charts, cols=3)
+        grid_layout = column(*row_charts)
+        st.bokeh_chart(grid_layout)
 
         # tooltips = [
         #     ("query", "@category"), 
         #     ("Positif", "@{positive_sentiment_count}{%0.2f}"),
         #     ("Negatif", "@{negative_sentiment_count}{%0.2f}")
         # ]
-        # chart = figure(width=900, height=300, y_range=metric_df[config.CATEGORY_COL], tooltips=tooltips, tools=[])
+        # chart = figure(width=900, height=300, y_range=metric_df[config.CATEGORY_COL], tools=[])
         # chart.hbar(y=config.CATEGORY_COL, left=0, height=0.2, right="positive_sentiment_count", color="#3BACC4", source=metric_df)
         # chart.hbar(y=config.CATEGORY_COL, left="positive_sentiment_count", height=0.2, right=1, color="#C4533B", source=metric_df)
         
