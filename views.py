@@ -174,13 +174,13 @@ def set_donut_charts(value_col, tooltips, source):
 
     source_copy = source.copy()
     source_copy = source_copy.query(f"{angle_col} > 0")
-    source_copy[value_col] = source_copy[value_col].astype("str")
-    source_copy[value_col] = source_copy[value_col]
-    source_copy["x"] = np.cos(cumsum_angle(source_copy[angle_col]) - source_copy[angle_col] / 2) / 3 - 0.05
-    source_copy["y"] = np.sin(cumsum_angle(source_copy[angle_col]) - source_copy[angle_col] / 2) / 3
+    source_copy[value_col] = source_copy[value_col] / source_copy[value_col].sum()
+    source_copy[value_col] = source_copy[value_col].apply("{:.2%}".format).astype("str")
+    source_copy["x"] = np.cos(cumsum_angle(source_copy[angle_col]) - source_copy[angle_col] / 2) / 1.5
+    source_copy["y"] = np.sin(cumsum_angle(source_copy[angle_col]) - source_copy[angle_col] / 2) / 1.5
 
     source_copy = ColumnDataSource(source_copy)
-    label = LabelSet(x="x", y="y", text=value_col, text_color="white", source=source_copy, render_mode="canvas")
+    label = LabelSet(x="x", y="y", text=value_col, text_color="black", text_font_size="12px", source=source_copy, render_mode="canvas")
     chart.add_layout(label)
 
     chart.grid.grid_line_color = None
@@ -420,8 +420,8 @@ Includes word cloud on every query
 def show_wordcloud():
     st.subheader("Word Cloud")
     st.markdown("""
-    Word Cloud merupakan kumpulan kata yang digunakan oleh para pengguna media sosial suatu kata
-    kunci. Kata-kata ditampilkan dalam bentuk gambar yang berisikan yang mana memuat kata-kata yang sering
+    Word Cloud merupakan kumpulan kata yang digunakan oleh para pengguna media sosial. 
+    Kata-kata ditampilkan dalam bentuk gambar yang berisikan yang mana memuat kata-kata yang sering
     muncul.
     """)
 
